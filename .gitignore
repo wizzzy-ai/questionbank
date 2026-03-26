@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Local artifacts ###
+.m2/
+hs_err_pid*.log
+replay_pid*.log
