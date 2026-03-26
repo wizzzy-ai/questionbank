@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Mobile bottom navigation fragment (shown on < lg only).
+  Usage: <div th:insert="~{fragments/bottom_nav :: bottomNav('dashboard')}"></div>
+  activePage values: 'dashboard' | 'quiz' | 'results' | 'bookmarks' | 'profile'
+-->
+<nav th:fragment="bottomNav(activePage)"
+     class="bottom-nav d-lg-none"
+     aria-label="Bottom navigation">
+  <a th:href="@{/dashboard}"
+     th:class="${'bottom-nav__item' + (activePage == 'dashboard' ? ' is-active' : '')}"
+     aria-label="Dashboard">
+    <i class="bi bi-grid-fill"></i>
+    <span>Home</span>
+  </a>
+
+  <a th:href="@{/quiz/start(count=10)}"
+     th:class="${'bottom-nav__item' + (activePage == 'quiz' ? ' is-active' : '')}"
+     aria-label="Start test">
+    <i class="bi bi-play-circle-fill"></i>
+    <span>Test</span>
+  </a>
+
+  <a th:href="@{/bookmarks}"
+     th:class="${'bottom-nav__item' + (activePage == 'bookmarks' ? ' is-active' : '')}"
+     aria-label="Bookmarked questions">
+    <i class="bi bi-star-fill"></i>
+    <span>Saved</span>
+  </a>
+
+  <a th:href="@{/dashboard} + '#recentResults'"
+     th:class="${'bottom-nav__item' + (activePage == 'results' ? ' is-active' : '')}"
+     aria-label="Results">
+    <i class="bi bi-bar-chart-fill"></i>
+    <span>Results</span>
+  </a>
+
+  <a th:href="@{/profile}"
+     th:class="${'bottom-nav__item' + (activePage == 'profile' ? ' is-active' : '')}"
+     aria-label="Profile">
+    <i class="bi bi-person-circle"></i>
+    <span>Me</span>
+  </a>
+</nav>
+
+</body>
+</html>
