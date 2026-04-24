@@ -12,6 +12,9 @@ public class AuthInterceptor implements HandlerInterceptor {
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 		String uri = request.getRequestURI();
+		if (uri.equals("/") || uri.equals("/favicon.svg")) {
+			return true;
+		}
 		if (uri.startsWith("/css/") || uri.startsWith("/js/") || uri.startsWith("/images/") || uri.startsWith("/webjars/")) {
 			return true;
 		}

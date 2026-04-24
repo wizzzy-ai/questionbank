@@ -3,279 +3,185 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Quiz • Question Bank</title>
+  <title>Quiz - Question Bank</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
   <link th:href="@{/css/app.css}" rel="stylesheet"/>
 </head>
-<body class="has-bottom-nav">
+<body>
 
-<!-- Page-load bar -->
 <div class="page-load-bar"></div>
 
-<!-- Submit loading overlay -->
 <div class="loading-overlay" id="loadingOverlay">
   <div class="gold-spinner"></div>
   <div>
-    <p class="text-gold fw-bold mb-1" style="font-size:1.05rem;">Submitting Your Answers…</p>
+    <p class="text-gold fw-bold mb-1" style="font-size:1.05rem;">Submitting your answers...</p>
     <p class="text-muted-2 small mb-0">Please wait, do not close this tab.</p>
   </div>
 </div>
 
-<!-- Sidebar -->
-<div th:insert="~{fragments/sidebar :: sidebar('quiz')}"></div>
-<!-- Mobile bottom nav -->
-<div th:insert="~{fragments/bottom_nav :: bottomNav('quiz')}"></div>
+<div th:insert="~{fragments/app_nav :: appNav('quiz')}"></div>
 
-<!-- ══════════════════════════════════════
-     NAVBAR
-     ══════════════════════════════════════ -->
-<nav class="navbar navbar-expand-lg navbar-dark">
-  <div class="container-fluid px-3">
-    <!-- Hamburger -->
-    <button class="navbar-menu-btn me-2" type="button"
-            data-bs-toggle="offcanvas" data-bs-target="#appSidebar"
-            aria-controls="appSidebar" aria-label="Open menu">
-      <i class="bi bi-list"></i>
-    </button>
+<main class="quizora-page">
+  <div class="quizora-shell">
+    <form th:action="@{/quiz/submit}" method="post" id="quizForm" class="quizora-form">
+      <div class="quizora-card card-glass">
+        <div class="quizora-card__header">
+          <div class="quizora-counter" id="questionCounter">Q1 / 10</div>
 
-    <a class="navbar-brand" th:href="@{/dashboard}">
-      <span class="brand-logo-block">QB</span>
-      <span class="navbar-brand-text">Question Bank</span>
-    </a>
-
-    <!-- Timer (centre) -->
-    <div class="mx-auto d-flex align-items-center gap-2">
-      <i class="bi bi-alarm" style="color:var(--gold);font-size:0.95rem;"></i>
-      <div class="timer-display" id="timer"
-           data-bs-toggle="tooltip" data-bs-title="Time remaining" data-bs-placement="bottom">--:--</div>
-    </div>
-
-    <!-- Exit button -->
-    <button type="button" class="btn btn-outline-light btn-sm ms-auto"
-            data-bs-toggle="modal" data-bs-target="#exitModal"
-            title="Exit the test (progress will be lost)">
-      <i class="bi bi-box-arrow-left me-1"></i><span class="navbar-exit-text">Exit</span>
-    </button>
-  </div>
-</nav>
-
-<!-- Gold answered-progress bar -->
-<div style="height:3px;background:var(--border-subtle);">
-  <div id="progressBar" class="progress-bar-gold" style="height:100%;width:0%;"></div>
-</div>
-
-<!-- Progress label strip -->
-<div class="progress-label-strip">
-  <span id="progressLabelPos" class="pos-text">Question 1 of 10</span>
-  <span id="progressLabelAns">0 answered</span>
-</div>
-
-<!-- ══════════════════════════════════════
-     MAIN LAYOUT
-     ══════════════════════════════════════ -->
-<main class="container-fluid px-3 px-md-4 py-4">
-  <div class="row g-4 justify-content-center">
-
-    <!-- LEFT SIDEBAR -->
-    <div class="col-auto quiz-sidebar" style="width:210px;">
-      <div class="card card-glass p-3 sticky-top" style="top:96px;">
-        <div class="section-label mb-3">
-          <i class="bi bi-grid-3x3 me-1"></i>Navigator
-        </div>
-
-        <div class="d-flex flex-column gap-1 mb-3" style="font-size:0.72rem;">
-          <div class="d-flex align-items-center gap-2">
-            <div style="width:11px;height:11px;border-radius:3px;background:var(--gold);"></div>
-            <span class="text-muted-2">Current</span>
+          <div class="quizora-meta">
+            <div class="d-flex align-items-center gap-2 flex-wrap justify-content-center">
+              <span class="pill" th:if="${selectedDifficulty != null}" th:text="${selectedDifficulty}">MEDIUM</span>
+              <span class="pill" th:if="${selectedTopics != null and !#lists.isEmpty(selectedTopics)}"
+                    th:text="${#lists.size(selectedTopics)} + ' topic' + (${#lists.size(selectedTopics) > 1} ? 's' : '')">2 topics</span>
+            </div>
+            <div class="quizora-timer" id="timer"
+                 data-bs-toggle="tooltip" data-bs-title="Time remaining" data-bs-placement="bottom">
+              <i class="bi bi-stopwatch"></i>
+              <span>--:--</span>
+            </div>
           </div>
-          <div class="d-flex align-items-center gap-2">
-            <div style="width:11px;height:11px;border-radius:3px;background:var(--gold-dim);border:1px solid var(--border-gold);"></div>
-            <span class="text-muted-2">Answered</span>
-          </div>
-          <div class="d-flex align-items-center gap-2">
-            <div style="width:11px;height:11px;border-radius:3px;background:var(--bg-input);border:1px solid var(--border-subtle);"></div>
-            <span class="text-muted-2">Not answered</span>
-          </div>
-        </div>
 
-        <div class="d-flex flex-wrap gap-2" id="qNavGrid"></div>
-
-        <div class="mt-3 pt-2" style="border-top:1px solid var(--border-subtle);">
-          <span class="text-muted-2" style="font-size:0.74rem;">
-            <span id="answeredCount">0</span> / <span id="totalCountSidebar">0</span> answered
-          </span>
-        </div>
-
-        <div class="mt-3">
-          <button type="button" id="sidebarReviewBtn" class="btn btn-gold-outline btn-sm w-100">
-            <i class="bi bi-clipboard-check me-1"></i>Review &amp; Submit
+          <button type="button"
+                  class="quizora-exit btn btn-gold-outline btn-sm"
+                  data-bs-toggle="modal" data-bs-target="#exitModal"
+                  title="Exit the test (progress will be lost)">
+            <i class="bi bi-box-arrow-left me-1"></i>Exit
           </button>
         </div>
-      </div>
-    </div>
 
-    <!-- MAIN PANEL -->
-    <div class="col-12 col-md-10 col-lg-8" style="max-width:780px;">
-      <div class="card card-glass">
-        <div class="card-body p-4 p-md-5">
+        <div class="quizora-nav-track">
+          <div class="quizora-nav-grid" id="qNavGrid"></div>
+        </div>
 
-          <!-- Panel header -->
-          <div class="d-flex align-items-center justify-content-between mb-4">
-            <span class="perf-badge excellent" id="questionCounter">Q1 / 10</span>
-            <div class="d-flex gap-2">
-              <button class="btn btn-gold-outline btn-sm d-lg-none"
-                      type="button" data-bs-toggle="collapse" data-bs-target="#mobileNav"
-                      data-bs-toggle-tt="tooltip" title="View question navigator">
-                <i class="bi bi-grid-3x3 me-1"></i>Navigator
-              </button>
-              <button type="button" id="mobileReviewBtn" class="btn btn-gold-outline btn-sm"
-                      data-bs-toggle="tooltip" title="Review all answers before submitting" data-bs-placement="bottom">
-                <i class="bi bi-clipboard-check me-1"></i>Review
-              </button>
+        <div class="quizora-progress">
+          <div id="progressBar" class="quizora-progress__fill"></div>
+        </div>
+
+        <div id="quizSkeleton" class="quizora-skeleton">
+          <div class="skeleton-block quizora-skeleton__line quizora-skeleton__line--sm"></div>
+          <div class="skeleton-block quizora-skeleton__line"></div>
+          <div class="skeleton-block quizora-skeleton__answer"></div>
+          <div class="skeleton-block quizora-skeleton__answer"></div>
+          <div class="skeleton-block quizora-skeleton__answer"></div>
+          <div class="skeleton-block quizora-skeleton__answer"></div>
+        </div>
+
+        <div id="questionsArea" style="display:none;">
+          <div th:each="q, stat : ${questions}"
+               class="question-slide"
+               th:data-index="${stat.index}"
+               th:data-question-id="${q.id}">
+
+            <section class="quizora-stage">
+              <div class="quizora-stage__top">
+                <div class="quizora-timer quizora-timer--inline">
+                  <i class="bi bi-stopwatch"></i>
+                  <span class="quizora-timer__mirror">--:--</span>
+                </div>
+
+                <div class="quizora-stage__actions">
+                  <span class="badge text-bg-secondary quizora-stage__tag"
+                        th:text="${q.category}">Java</span>
+
+                  <button type="button"
+                          class="bookmark-btn"
+                          th:classappend="${bookmarkedQuestionIds.contains(q.id)} ? ' is-bookmarked' : ''"
+                          th:attr="data-question-id=${q.id},aria-pressed=${bookmarkedQuestionIds.contains(q.id)}"
+                          title="Save question for later review">
+                    <i class="bi bi-bookmark-star-fill"></i>
+                  </button>
+
+                  <button type="button" class="btn btn-gold-outline btn-sm quizora-review-btn" data-review-trigger
+                          data-bs-toggle="tooltip" title="Review all answers before submitting" data-bs-placement="bottom">
+                    <i class="bi bi-clipboard-check me-1"></i>Review
+                  </button>
+                </div>
+              </div>
+
+              <div class="quizora-question">
+                <h1 class="quizora-question__text" th:text="${q.questionText}">Question text</h1>
+              </div>
+
+              <div class="quizora-answers">
+                <label class="quizora-answer" th:each="opt : ${q.options}">
+                  <input class="form-check-input quizora-answer__input" type="radio"
+                         th:name="${'q_' + q.id}"
+                         th:value="${opt.key}"/>
+                  <span class="quizora-answer__key" th:text="${opt.key}">A</span>
+                  <span class="quizora-answer__text" th:text="${opt.text}">Option</span>
+                  <span class="quizora-answer__check"><i class="bi bi-check2"></i></span>
+                </label>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <div id="reviewPanel" class="quizora-review" style="display:none;">
+          <div class="quizora-review__header">
+            <div>
+              <div class="section-label"><i class="bi bi-clipboard-check"></i>Review Answers</div>
+              <h2 class="quizora-review__title">Final answer check</h2>
+            </div>
+            <button type="button" id="backToQuizBtn" class="btn btn-gold-outline btn-sm">
+              <i class="bi bi-arrow-left me-1"></i>Back
+            </button>
+          </div>
+
+          <div class="quizora-review__stats">
+            <div class="quizora-review__stat">
+              <span class="quizora-review__stat-value" id="reviewAnswered">0</span>
+              <span class="quizora-review__stat-label">Answered</span>
+            </div>
+            <div class="quizora-review__stat quizora-review__stat--warn">
+              <span class="quizora-review__stat-value" id="reviewUnanswered">0</span>
+              <span class="quizora-review__stat-label">Not answered</span>
             </div>
           </div>
 
-          <!-- Mobile navigator -->
-          <div class="collapse d-lg-none mb-4" id="mobileNav">
-            <div class="card-inner p-3">
-              <div class="d-flex flex-wrap gap-2" id="qNavGridMobile"></div>
-            </div>
+          <div id="reviewList" class="vstack gap-2"></div>
+        </div>
+
+        <div class="quizora-footer" id="navButtons">
+          <button type="button" id="prevBtn" class="btn btn-gold-outline quizora-footer__btn" disabled>
+            <i class="bi bi-arrow-left me-1"></i>Previous
+          </button>
+
+          <div class="quizora-footer__actions">
+            <button type="button" id="reviewTrigger" class="btn btn-gold-outline quizora-footer__btn d-none">
+              <i class="bi bi-clipboard-check me-1"></i>Review
+            </button>
+            <button type="button" id="nextBtn" class="btn btn-gold quizora-footer__btn quizora-footer__btn--primary">
+              Next <i class="bi bi-arrow-right ms-1"></i>
+            </button>
           </div>
+        </div>
 
-          <!-- FORM -->
-          <form th:action="@{/quiz/submit}" method="post" id="quizForm">
+        <div id="reviewActions" class="quizora-footer" style="display:none;">
+          <button type="button" class="btn btn-gold-outline quizora-footer__btn" id="reviewBackBtn">
+            <i class="bi bi-arrow-left me-1"></i>Continue Quiz
+          </button>
 
-            <!-- Skeleton (shows briefly while JS initializes) -->
-            <div id="quizSkeleton">
-              <div class="quiz-q mb-4">
-                <div class="skeleton-block mb-3" style="height:18px;width:55%;"></div>
-                <div class="skeleton-block mb-2" style="height:14px;width:88%;"></div>
-                <div class="skeleton-block" style="height:14px;width:72%;"></div>
-              </div>
-              <div class="vstack gap-2 mb-4">
-                <div class="skeleton-block" style="height:50px;"></div>
-                <div class="skeleton-block" style="height:50px;"></div>
-                <div class="skeleton-block" style="height:50px;"></div>
-                <div class="skeleton-block" style="height:50px;"></div>
-              </div>
-            </div>
-
-	            <!-- Question Slides -->
-	            <div id="questionsArea" style="display:none;">
-	              <div th:each="q, stat : ${questions}"
-	                   class="question-slide"
-	                   th:data-index="${stat.index}"
-	                   th:data-question-id="${q.id}">
-	
-	                <div class="quiz-q mb-4">
-	                  <div class="d-flex justify-content-between align-items-start gap-3">
-	                    <p class="fw-semibold mb-0 flex-grow-1" style="font-size:1.02rem;line-height:1.55;"
-	                       th:text="${q.questionText}">Question text</p>
-	                    <div class="d-flex flex-column align-items-end gap-2 flex-shrink-0">
-	                      <button type="button"
-	                              class="bookmark-btn"
-	                              th:attr="data-question-id=${q.id},aria-pressed=${bookmarkedQuestionIds != null and bookmarkedQuestionIds.contains(q.id)}"
-	                              data-bs-toggle="tooltip"
-	                              data-bs-title="Bookmark this question"
-	                              data-bs-placement="left"
-	                              aria-label="Bookmark question">
-	                        <i class="bi"
-	                           th:classappend="${bookmarkedQuestionIds != null and bookmarkedQuestionIds.contains(q.id)} ? ' bi-star-fill' : ' bi-star'"></i>
-	                      </button>
-	                      <span class="badge text-bg-secondary"
-	                            th:text="${q.category}">Java</span>
-	                    </div>
-	                  </div>
-	                </div>
-
-	                <div class="vstack gap-2 mb-4">
-	                  <label class="choice" th:each="opt : ${q.options}">
-	                    <input class="form-check-input" type="radio"
-	                           th:name="${'q_' + q.id}"
-	                           th:value="${opt.key}"/>
-	                    <span class="option-letter" th:text="${opt.key}">A</span>
-	                    <span th:text="${opt.text}">Option</span>
-	                  </label>
-	                </div>
-
-              </div><!-- /.question-slide -->
-            </div>
-
-            <!-- Review Panel -->
-            <div id="reviewPanel" style="display:none;">
-              <div class="d-flex align-items-center justify-content-between mb-3">
-                <h2 class="h6 fw-bold mb-0 text-gold">
-                  <i class="bi bi-clipboard-check me-2"></i>Review Your Answers
-                </h2>
-                <button type="button" id="backToQuizBtn" class="btn btn-gold-outline btn-sm">
-                  <i class="bi bi-arrow-left me-1"></i>Back
-                </button>
-              </div>
-
-              <div class="d-flex gap-3 mb-3" style="font-size:0.8rem;">
-                <span><span class="fw-bold text-gold" id="reviewAnswered">0</span>
-                  <span class="text-muted-2"> answered</span></span>
-                <span><span class="fw-bold" style="color:#f87171;" id="reviewUnanswered">0</span>
-                  <span class="text-muted-2"> not answered</span></span>
-              </div>
-
-              <div id="reviewList" class="vstack gap-2 mb-4"></div>
-
-              <div class="d-flex gap-2 justify-content-end pt-3"
-                   style="border-top:1px solid var(--border-subtle);">
-                <button type="button" class="btn btn-gold-outline" id="reviewBackBtn">
-                  <i class="bi bi-arrow-left me-1"></i>Continue Quiz
-                </button>
-                <button type="button" class="btn btn-gold btn-lg"
-                        data-bs-toggle="modal" data-bs-target="#submitModal">
-                  <i class="bi bi-send-fill me-2"></i>Final Submit
-                </button>
-              </div>
-            </div>
-
-            <!-- Navigation Buttons -->
-            <div id="navButtons"
-                 class="d-flex align-items-center justify-content-between gap-2 pt-2"
-                 style="border-top:1px solid var(--border-subtle);">
-              <button type="button" id="prevBtn" class="btn btn-gold-outline"
-                      style="min-width:110px;" disabled
-                      data-bs-toggle="tooltip" title="Go to previous question" data-bs-placement="top">
-                <i class="bi bi-arrow-left me-1"></i>Previous
-              </button>
-              <div class="d-flex gap-2">
-                <button type="button" id="nextBtn" class="btn btn-gold"
-                        style="min-width:110px;"
-                        data-bs-toggle="tooltip" title="Go to next question" data-bs-placement="top">
-                  Next<i class="bi bi-arrow-right ms-1"></i>
-                </button>
-                <button type="button" id="reviewTrigger"
-                        class="btn btn-gold d-none" style="min-width:155px;"
-                        data-bs-toggle="tooltip" title="Review all answers before submitting" data-bs-placement="top">
-                  <i class="bi bi-clipboard-check me-2"></i>Review &amp; Submit
-                </button>
-              </div>
-            </div>
-
-          </form>
+          <div class="quizora-footer__actions">
+            <button type="button" class="btn btn-gold quizora-footer__btn quizora-footer__btn--primary"
+                    data-bs-toggle="modal" data-bs-target="#submitModal">
+              Final Submit <i class="bi bi-send-fill ms-1"></i>
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-
+    </form>
   </div>
 </main>
 
-<!-- ══ MODAL: Submit Confirmation ══ -->
-<div class="modal fade" id="submitModal" tabindex="-1"
-     aria-labelledby="submitModalLabel" aria-hidden="true">
+<div class="modal fade" id="submitModal" tabindex="-1" aria-labelledby="submitModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content"
-         style="background:var(--bg-card);border:1px solid var(--border-gold);border-radius:var(--radius-lg);">
-      <div class="modal-header" style="border-bottom:1px solid var(--border-subtle);">
+    <div class="modal-content quizora-modal">
+      <div class="modal-header quizora-modal__header">
         <h5 class="modal-title" id="submitModalLabel">
           <i class="bi bi-send-fill me-2 text-gold"></i>Submit Quiz
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body py-4">
         <p class="text-muted-2 mb-3">Once submitted you cannot change your answers.</p>
@@ -285,7 +191,7 @@
             <div class="text-muted-2" style="font-size:0.72rem;">Answered</div>
           </div>
           <div class="stat-card flex-fill text-center py-2 px-3">
-            <div class="fw-bold fs-5" id="modalUnansweredCount" style="color:#f87171;">0</div>
+            <div class="fw-bold fs-5" id="modalUnansweredCount" style="color:#c77178;">0</div>
             <div class="text-muted-2" style="font-size:0.72rem;">Not answered</div>
           </div>
         </div>
@@ -294,7 +200,7 @@
           <span id="unansweredMsg"></span>
         </div>
       </div>
-      <div class="modal-footer" style="border-top:1px solid var(--border-subtle);">
+      <div class="modal-footer quizora-modal__footer">
         <button type="button" class="btn btn-gold-outline" data-bs-dismiss="modal">
           <i class="bi bi-arrow-left me-1"></i>Go Back
         </button>
@@ -306,37 +212,32 @@
   </div>
 </div>
 
-<!-- ══ MODAL: Exit Test Warning ══ -->
-<div class="modal fade" id="exitModal" tabindex="-1"
-     aria-labelledby="exitModalLabel" aria-hidden="true">
+<div class="modal fade" id="exitModal" tabindex="-1" aria-labelledby="exitModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content"
-         style="background:var(--bg-card);border:1px solid rgba(248,113,113,0.40);border-radius:var(--radius-lg);">
-      <div class="modal-header" style="border-bottom:1px solid var(--border-subtle);">
+    <div class="modal-content quizora-modal">
+      <div class="modal-header quizora-modal__header">
         <h5 class="modal-title" id="exitModalLabel">
-          <i class="bi bi-exclamation-triangle-fill me-2" style="color:#f87171;"></i>Exit Test?
+          <i class="bi bi-exclamation-triangle-fill me-2" style="color:#c77178;"></i>Exit Test?
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body py-4">
-        <p class="text-muted-2 mb-2">
-          Are you sure you want to exit the test?
-        </p>
-        <div class="quiz-q" style="border-color:rgba(248,113,113,0.25);">
+        <p class="text-muted-2 mb-2">Are you sure you want to exit the test?</p>
+        <div class="quizora-warning-card">
           <div class="d-flex align-items-start gap-2">
-            <i class="bi bi-info-circle-fill mt-1" style="color:#f87171;font-size:0.9rem;flex-shrink:0;"></i>
+            <i class="bi bi-info-circle-fill mt-1" style="color:#c77178;font-size:0.9rem;flex-shrink:0;"></i>
             <p class="mb-0 text-muted-2 small">
-              Your quiz progress will be <strong style="color:#f87171;">lost</strong> and
-              will not be saved. You will need to start a new test from the dashboard.
+              Your quiz progress will be <strong style="color:#c77178;">lost</strong> and will not be saved.
+              You will need to start a new test from the dashboard.
             </p>
           </div>
         </div>
       </div>
-      <div class="modal-footer" style="border-top:1px solid var(--border-subtle);">
-        <button type="button" class="btn btn-gold btn-sm" data-bs-dismiss="modal">
+      <div class="modal-footer quizora-modal__footer">
+        <button type="button" class="btn btn-gold" data-bs-dismiss="modal">
           <i class="bi bi-arrow-left me-1"></i>Stay in Test
         </button>
-        <a th:href="@{/dashboard}" class="btn btn-outline-light btn-sm" id="confirmExitBtn">
+        <a th:href="@{/dashboard}" class="btn btn-outline-light" id="confirmExitBtn">
           <i class="bi bi-box-arrow-left me-1"></i>Exit to Dashboard
         </a>
       </div>
@@ -344,18 +245,16 @@
   </div>
 </div>
 
-<!-- ══ MODAL: Time's Up ══ -->
 <div class="modal fade" id="timesUpModal"
      data-bs-backdrop="static" data-bs-keyboard="false"
      tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-sm">
-    <div class="modal-content"
-         style="background:var(--bg-card);border:1px solid var(--border-gold);border-radius:var(--radius-lg);text-align:center;">
+    <div class="modal-content quizora-modal text-center">
       <div class="modal-body py-5 px-4">
         <div style="font-size:2.8rem;line-height:1;margin-bottom:1rem;">⏰</div>
-        <h4 class="fw-bold mb-1" style="color:var(--gold);">Time's Up!</h4>
+        <h4 class="fw-bold mb-1 text-gold">Time's Up!</h4>
         <p class="text-muted-2 small mb-4">
-          Your answers have been recorded.<br/>Submitting automatically in…
+          Your answers have been recorded.<br/>Submitting automatically in...
         </p>
         <div class="timesup-ring" id="autoSubmitCountdown">3</div>
         <p class="text-subtle mt-3" style="font-size:0.75rem;">Please wait, do not close this tab.</p>
@@ -369,216 +268,154 @@
 (function () {
   'use strict';
 
-	  /* ── STATE ── */
-	  var totalQ        = [[${total}]];
-	  var slides        = Array.from(document.querySelectorAll('.question-slide'));
-	  var answered      = new Set();
-	  var currentQ      = 0;
-	  var inReview      = false;
-	  var quizSubmitted = false;
-	  var bookmarkedIds = new Set(/*[[${bookmarkedQuestionIds}]]*/ []);
-	  var slideQuestionIds = slides.map(function (s) {
-	    return parseInt(s.dataset.questionId || '0', 10);
-	  });
+  var AUTO_ADVANCE_ON_SELECT = false;
 
-  /* ── NAV GRIDS ── */
-	  function buildNavGrid(container) {
-	    container.innerHTML = '';
-	    for (var i = 0; i < totalQ; i++) {
-	      (function (idx) {
-	        var btn = document.createElement('button');
-	        btn.type        = 'button';
-	        btn.className   = 'q-nav-btn';
-	        btn.textContent = idx + 1;
-	        if (bookmarkedIds.has(slideQuestionIds[idx])) {
-	          btn.classList.add('bookmarked');
-	        }
-	        btn.addEventListener('click', function () {
-	          if (inReview) exitReview();
-	          showQuestion(idx);
-	        });
-	        container.appendChild(btn);
+  var totalQ = [[${total}]];
+  var slides = Array.from(document.querySelectorAll('.question-slide'));
+  var answered = new Set();
+  var currentQ = 0;
+  var inReview = false;
+  var quizSubmitted = false;
+
+  var qNavGrid = document.getElementById('qNavGrid');
+  var questionCounter = document.getElementById('questionCounter');
+  var progressBar = document.getElementById('progressBar');
+  var timerEl = document.getElementById('timer');
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+  var reviewTrigger = document.getElementById('reviewTrigger');
+  var reviewButtons = Array.from(document.querySelectorAll('[data-review-trigger]'));
+  var bookmarkButtons = Array.from(document.querySelectorAll('.bookmark-btn'));
+
+  function currentSlide() {
+    return slides[currentQ];
+  }
+
+  function slideHasAnswer(index) {
+    var slide = slides[index];
+    return !!slide.querySelector('input:checked');
+  }
+
+  function buildNavGrid() {
+    qNavGrid.innerHTML = '';
+    for (var i = 0; i < totalQ; i++) {
+      (function (idx) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'quizora-nav-dot';
+        btn.textContent = idx + 1;
+        btn.addEventListener('click', function () {
+          if (inReview) {
+            exitReview();
+          }
+          showQuestion(idx);
+        });
+        qNavGrid.appendChild(btn);
       })(i);
     }
   }
 
-  var navGrid       = document.getElementById('qNavGrid');
-  var navGridMobile = document.getElementById('qNavGridMobile');
-  buildNavGrid(navGrid);
-  buildNavGrid(navGridMobile);
-  document.getElementById('totalCountSidebar').textContent = totalQ;
-
-  /* ── SHOW QUESTION ── */
-  function showQuestion(idx) {
-    slides.forEach(function (s, i) {
-      s.style.display = (i === idx) ? 'block' : 'none';
+  function updateNavGrid() {
+    qNavGrid.querySelectorAll('.quizora-nav-dot').forEach(function (btn, index) {
+      btn.classList.toggle('is-current', !inReview && index === currentQ);
+      btn.classList.toggle('is-answered', answered.has(index) && index !== currentQ);
     });
-    currentQ = idx;
-    updateNavBtns();
-    updateProgress();
-    updateControls();
-    updateProgressLabel();
   }
 
-  /* ── NAV BUTTON STATES ── */
-  function updateNavBtns() {
-    [navGrid, navGridMobile].forEach(function (grid) {
-      grid.querySelectorAll('.q-nav-btn').forEach(function (btn, i) {
-        btn.classList.toggle('active',   !inReview && i === currentQ);
-        btn.classList.toggle('answered', answered.has(i) && !(i === currentQ && !inReview));
-      });
-    });
-    document.getElementById('questionCounter').textContent =
-      inReview ? 'Review' : ('Q' + (currentQ + 1) + ' / ' + totalQ);
-  }
-
-  /* ── PROGRESS BAR ── */
   function updateProgress() {
-    var pct = Math.round((answered.size / totalQ) * 100);
-    document.getElementById('progressBar').style.width = pct + '%';
-    document.getElementById('answeredCount').textContent = answered.size;
+    var pct = Math.max(8, Math.round(((currentQ + 1) / totalQ) * 100));
+    progressBar.style.width = pct + '%';
   }
 
-  /* ── PROGRESS LABEL STRIP ── */
-  function updateProgressLabel() {
-    var posEl = document.getElementById('progressLabelPos');
-    var ansEl = document.getElementById('progressLabelAns');
-    if (posEl) posEl.textContent = inReview
-      ? 'Reviewing answers'
-      : 'Question ' + (currentQ + 1) + ' of ' + totalQ;
-    if (ansEl) ansEl.textContent = answered.size + ' of ' + totalQ + ' answered';
+  function updateQuestionCounter() {
+    questionCounter.textContent = inReview ? 'Review' : ('Q' + (currentQ + 1) + ' / ' + totalQ);
   }
 
-  /* ── CONTROLS VISIBILITY ── */
   function updateControls() {
-    var prevBtn       = document.getElementById('prevBtn');
-    var nextBtn       = document.getElementById('nextBtn');
-    var reviewTrigger = document.getElementById('reviewTrigger');
-    var isLast        = (currentQ === totalQ - 1);
+    var hasAnswer = slideHasAnswer(currentQ);
+    var isLast = currentQ === totalQ - 1;
 
-    prevBtn.disabled = (currentQ === 0);
+    prevBtn.disabled = currentQ === 0;
+    nextBtn.disabled = !hasAnswer;
     nextBtn.classList.toggle('d-none', isLast);
     reviewTrigger.classList.toggle('d-none', !isLast);
+    reviewTrigger.disabled = !hasAnswer && answered.size === 0;
   }
 
-	  /* ── RADIO TRACKING ── */
-	  slides.forEach(function (slide, i) {
-	    slide.querySelectorAll('input[type="radio"]').forEach(function (radio) {
-	      radio.addEventListener('change', function () {
-	        answered.add(i);
-	        updateNavBtns();
-	        updateProgress();
-	        updateProgressLabel();
-	      });
-	    });
-	  });
+  function showQuestion(index) {
+    slides.forEach(function (slide, idx) {
+      slide.style.display = idx === index ? 'block' : 'none';
+    });
 
-	  /* ── BOOKMARKS ── */
-	  function setBookmarkUi(btn, isOn) {
-	    btn.classList.toggle('is-bookmarked', isOn);
-	    btn.setAttribute('aria-pressed', isOn ? 'true' : 'false');
-	    var icon = btn.querySelector('i.bi');
-	    if (icon) {
-	      icon.classList.toggle('bi-star-fill', isOn);
-	      icon.classList.toggle('bi-star', !isOn);
-	    }
-	  }
-
-	  function setNavBookmarkedByQuestionId(questionId, isOn) {
-	    var idx = slideQuestionIds.indexOf(questionId);
-	    if (idx < 0) return;
-	    [navGrid, navGridMobile].forEach(function (grid) {
-	      var btn = grid.querySelectorAll('.q-nav-btn')[idx];
-	      if (btn) btn.classList.toggle('bookmarked', isOn);
-	    });
-	  }
-
-	  document.querySelectorAll('.bookmark-btn').forEach(function (btn) {
-	    var qid = parseInt(btn.dataset.questionId || '0', 10);
-	    setBookmarkUi(btn, bookmarkedIds.has(qid));
-	    btn.addEventListener('click', function () {
-	      if (!qid) return;
-	      btn.disabled = true;
-	      fetch('/bookmarks/toggle', {
-	        method: 'POST',
-	        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-	        body: 'questionId=' + encodeURIComponent(qid)
-	      })
-	        .then(function (r) { return r.json(); })
-	        .then(function (data) {
-	          var isOn = !!(data && data.bookmarked);
-	          if (isOn) bookmarkedIds.add(qid); else bookmarkedIds.delete(qid);
-	          setBookmarkUi(btn, isOn);
-	          setNavBookmarkedByQuestionId(qid, isOn);
-	        })
-	        .catch(function () {
-	          /* leave UI as-is on failure */
-	        })
-	        .finally(function () { btn.disabled = false; });
-	    });
-	  });
-
-  /* ── PREV / NEXT ── */
-  document.getElementById('prevBtn').addEventListener('click', function () {
-    if (currentQ > 0) showQuestion(currentQ - 1);
-  });
-  document.getElementById('nextBtn').addEventListener('click', function () {
-    if (currentQ < totalQ - 1) showQuestion(currentQ + 1);
-  });
-
-  /* ── REVIEW MODE ── */
-  function enterReview() {
-    inReview = true;
-    document.getElementById('questionsArea').style.display = 'none';
-    document.getElementById('navButtons').style.display    = 'none';
-    document.getElementById('reviewPanel').style.display   = 'block';
-
-    var un = totalQ - answered.size;
-    document.getElementById('reviewAnswered').textContent   = answered.size;
-    document.getElementById('reviewUnanswered').textContent = un;
-    buildReviewList();
-    updateNavBtns();
-    updateProgressLabel();
-  }
-
-  function exitReview() {
-    inReview = false;
-    document.getElementById('reviewPanel').style.display   = 'none';
-    document.getElementById('questionsArea').style.display = 'block';
-    document.getElementById('navButtons').style.display    = 'flex';
-    updateNavBtns();
+    currentQ = index;
+    updateNavGrid();
+    updateProgress();
+    updateQuestionCounter();
     updateControls();
-    updateProgressLabel();
+  }
+
+  function markAnsweredState(slide) {
+    slide.querySelectorAll('.quizora-answer').forEach(function (label) {
+      var input = label.querySelector('input');
+      label.classList.toggle('is-selected', input.checked);
+    });
+  }
+
+  slides.forEach(function (slide, index) {
+    slide.querySelectorAll('input[type="radio"]').forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        answered.add(index);
+        markAnsweredState(slide);
+        updateNavGrid();
+        updateControls();
+
+        if (AUTO_ADVANCE_ON_SELECT && currentQ < totalQ - 1) {
+          window.setTimeout(function () {
+            showQuestion(currentQ + 1);
+          }, 220);
+        }
+      });
+    });
+  });
+
+  function escHtml(str) {
+    return str.replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   }
 
   function buildReviewList() {
     var list = document.getElementById('reviewList');
     list.innerHTML = '';
 
-    slides.forEach(function (slide, i) {
-      var qText   = slide.querySelector('.quiz-q p').textContent.trim();
+    slides.forEach(function (slide, index) {
       var checked = slide.querySelector('input:checked');
-      var hasAns  = answered.has(i) && checked;
-      var ansValue = '', ansText = '';
-      if (hasAns) {
-        ansValue = checked.value;
-        ansText  = checked.closest('label.choice').querySelector('span:last-child').textContent.trim();
+      var questionText = slide.querySelector('.quizora-question__text').textContent.trim();
+      var hasAnswer = !!checked;
+      var answerKey = '';
+      var answerText = '';
+
+      if (hasAnswer) {
+        answerKey = checked.value;
+        answerText = checked.closest('.quizora-answer').querySelector('.quizora-answer__text').textContent.trim();
       }
 
       var item = document.createElement('div');
-      item.className = 'review-item ' + (hasAns ? 'review-answered' : 'review-unanswered');
+      item.className = 'review-item ' + (hasAnswer ? 'review-answered' : 'review-unanswered');
       item.innerHTML =
         '<div class="d-flex align-items-start gap-3 flex-grow-1 overflow-hidden">' +
-          '<div class="review-qnum">' + (i + 1) + '</div>' +
+          '<div class="review-qnum">' + (index + 1) + '</div>' +
           '<div class="overflow-hidden">' +
-            '<p class="review-qtext">' + escHtml(qText) + '</p>' +
-            (hasAns
-              ? '<span class="review-answer-tag is-set"><i class="bi bi-check-circle-fill me-1"></i>Option ' + escHtml(ansValue) + ' — ' + escHtml(ansText) + '</span>'
+            '<p class="review-qtext">' + escHtml(questionText) + '</p>' +
+            (hasAnswer
+              ? '<span class="review-answer-tag is-set"><i class="bi bi-check-circle-fill me-1"></i>Option ' + escHtml(answerKey) + ' - ' + escHtml(answerText) + '</span>'
               : '<span class="review-answer-tag is-unset"><i class="bi bi-dash-circle-fill me-1"></i>Not answered</span>') +
           '</div>' +
         '</div>' +
-        '<button type="button" class="btn btn-gold-outline btn-sm flex-shrink-0 review-jump" ' +
-          'data-q="' + i + '" title="Edit this question"><i class="bi bi-pencil-square"></i></button>';
+        '<button type="button" class="btn btn-gold-outline btn-sm flex-shrink-0 review-jump" data-q="' + index + '">' +
+          '<i class="bi bi-pencil-square"></i>' +
+        '</button>';
 
       list.appendChild(item);
     });
@@ -592,25 +429,62 @@
     });
   }
 
-  function escHtml(str) {
-    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  function enterReview() {
+    inReview = true;
+    document.getElementById('questionsArea').style.display = 'none';
+    document.getElementById('navButtons').style.display = 'none';
+    document.getElementById('reviewPanel').style.display = 'block';
+    document.getElementById('reviewActions').style.display = 'flex';
+    document.getElementById('reviewAnswered').textContent = answered.size;
+    document.getElementById('reviewUnanswered').textContent = totalQ - answered.size;
+    buildReviewList();
+    updateQuestionCounter();
+    updateNavGrid();
   }
 
-  /* hook up review triggers */
-  ['reviewTrigger','sidebarReviewBtn','mobileReviewBtn'].forEach(function (id) {
-    var el = document.getElementById(id);
-    if (el) el.addEventListener('click', enterReview);
+  function exitReview() {
+    inReview = false;
+    document.getElementById('reviewPanel').style.display = 'none';
+    document.getElementById('reviewActions').style.display = 'none';
+    document.getElementById('questionsArea').style.display = 'block';
+    document.getElementById('navButtons').style.display = 'flex';
+    updateQuestionCounter();
+    updateNavGrid();
+    updateControls();
+  }
+
+  [reviewTrigger].concat(reviewButtons).forEach(function (button) {
+    if (button) {
+      button.addEventListener('click', enterReview);
+    }
   });
+
   document.getElementById('backToQuizBtn').addEventListener('click', exitReview);
   document.getElementById('reviewBackBtn').addEventListener('click', exitReview);
 
-  /* ── SUBMIT MODAL STATS ── */
+  prevBtn.addEventListener('click', function () {
+    if (currentQ > 0) {
+      showQuestion(currentQ - 1);
+    }
+  });
+
+  nextBtn.addEventListener('click', function () {
+    if (!slideHasAnswer(currentQ)) {
+      return;
+    }
+    if (currentQ < totalQ - 1) {
+      showQuestion(currentQ + 1);
+    }
+  });
+
   document.getElementById('submitModal').addEventListener('show.bs.modal', function () {
     var unanswered = totalQ - answered.size;
-    document.getElementById('modalAnsweredCount').textContent   = answered.size;
+    document.getElementById('modalAnsweredCount').textContent = answered.size;
     document.getElementById('modalUnansweredCount').textContent = unanswered;
+
     var warn = document.getElementById('unansweredWarning');
-    var msg  = document.getElementById('unansweredMsg');
+    var msg = document.getElementById('unansweredMsg');
+
     if (unanswered > 0) {
       warn.classList.remove('d-none');
       msg.textContent = unanswered + ' question(s) have not been answered yet.';
@@ -620,7 +494,6 @@
   });
 
   document.getElementById('confirmSubmitBtn').addEventListener('click', function () {
-    /* Close submit modal, show loading overlay, then submit */
     bootstrap.Modal.getInstance(document.getElementById('submitModal')).hide();
     document.getElementById('loadingOverlay').classList.add('active');
     quizSubmitted = true;
@@ -629,19 +502,29 @@
     }, 200);
   });
 
-  /* ── COUNTDOWN TIMER ── */
-  var timeLeft     = totalQ * 60;
+  var timeLeft = totalQ * 60;
   var timesUpShown = false;
 
-  function tick() {
-    var el = document.getElementById('timer');
-    var m  = Math.floor(timeLeft / 60).toString().padStart(2, '0');
-    var s  = (timeLeft % 60).toString().padStart(2, '0');
-    el.textContent = m + ':' + s;
+  function syncTimerDisplay(text) {
+    timerEl.querySelector('span').textContent = text;
+    document.querySelectorAll('.quizora-timer__mirror').forEach(function (mirror) {
+      mirror.textContent = text;
+    });
+  }
 
-    el.classList.remove('amber', 'warning');
-    if      (timeLeft <= 60)  el.classList.add('warning');
-    else if (timeLeft <= 120) el.classList.add('amber');
+  function tick() {
+    var m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+    var s = (timeLeft % 60).toString().padStart(2, '0');
+    var display = m + ':' + s;
+
+    syncTimerDisplay(display);
+
+    timerEl.classList.remove('warning', 'amber');
+    if (timeLeft <= 60) {
+      timerEl.classList.add('warning');
+    } else if (timeLeft <= 120) {
+      timerEl.classList.add('amber');
+    }
 
     if (timeLeft <= 0 && !timesUpShown) {
       timesUpShown = true;
@@ -649,17 +532,19 @@
       triggerTimesUp();
       return;
     }
+
     timeLeft--;
   }
 
   function triggerTimesUp() {
     var modal = new bootstrap.Modal(document.getElementById('timesUpModal'));
     modal.show();
+
     var count = 3;
-    var cdEl  = document.getElementById('autoSubmitCountdown');
+    var cdEl = document.getElementById('autoSubmitCountdown');
     var cd = setInterval(function () {
       count--;
-      cdEl.textContent = count > 0 ? count : '🚀';
+      cdEl.textContent = count > 0 ? count : 'Go';
       if (count <= 0) {
         clearInterval(cd);
         setTimeout(function () {
@@ -673,7 +558,6 @@
   tick();
   var timerInterval = setInterval(tick, 1000);
 
-  /* ── BEFOREUNLOAD WARNING ── */
   window.addEventListener('beforeunload', function (e) {
     if (!quizSubmitted) {
       e.preventDefault();
@@ -681,7 +565,6 @@
     }
   });
 
-  /* ── INIT: skeleton → questions ── */
   setTimeout(function () {
     var skel = document.getElementById('quizSkeleton');
     skel.classList.add('hiding');
@@ -689,14 +572,49 @@
       skel.style.display = 'none';
       document.getElementById('questionsArea').style.display = 'block';
       showQuestion(0);
+      slides.forEach(markAnsweredState);
     }, 250);
-  }, 350);
+  }, 300);
 
-  /* ── TOOLTIPS ── */
   document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
     new bootstrap.Tooltip(el, { trigger: 'hover' });
   });
 
+  buildNavGrid();
+
+  bookmarkButtons.forEach(function (button) {
+    button.addEventListener('click', function () {
+      var target = this;
+      var questionId = target.dataset.questionId;
+      if (!questionId || target.dataset.loading === 'true') {
+        return;
+      }
+
+      target.dataset.loading = 'true';
+
+      fetch('/bookmarks/toggle', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: 'questionId=' + encodeURIComponent(questionId)
+      }).then(function (response) {
+        if (!response.ok) {
+          throw new Error('Bookmark toggle failed');
+        }
+        return response.json();
+      }).then(function (data) {
+        var isBookmarked = !!(data && data.bookmarked);
+        target.classList.toggle('is-bookmarked', isBookmarked);
+        target.setAttribute('aria-pressed', isBookmarked ? 'true' : 'false');
+        target.setAttribute('title', isBookmarked ? 'Saved for later review' : 'Save question for later review');
+      }).finally(function () {
+        delete target.dataset.loading;
+      });
+    });
+  });
 })();
 </script>
 </body>

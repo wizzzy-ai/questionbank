@@ -25,17 +25,15 @@ public class AuthController {
 
 	@GetMapping("/login")
 	public String loginPage(Model model, @RequestParam(value = "error", required = false) String error) {
-		if (!model.containsAttribute("loginForm")) {
-			model.addAttribute("loginForm", new LoginForm());
-		}
-		model.addAttribute("error", error);
-		return "auth/login";
+		prepareAuthModel(model, "login", error);
+		return "auth/auth";
 	}
 
 	@PostMapping("/login")
-	public String login(@Valid @ModelAttribute("loginForm") LoginForm form, BindingResult bindingResult, HttpSession session) {
+	public String login(@Valid @ModelAttribute("loginForm") LoginForm form, BindingResult bindingResult, Model model, HttpSession session) {
 		if (bindingResult.hasErrors()) {
-			return "auth/login";
+			prepareAuthModel(model, "login", null);
+			return "auth/auth";
 		}
 
 		return authService.authenticate(form.getEmail(), form.getPassword())
@@ -48,15 +46,13 @@ public class AuthController {
 
 	@GetMapping("/register")
 	public String registerPage(Model model) {
-		if (!model.containsAttribute("registerForm")) {
-			model.addAttribute("registerForm", new RegisterForm());
-		}
-		return "auth/register";
+		prepareAuthModel(model, "register", null);
+		return "auth/auth";
 	}
 
 	@PostMapping("/register")
 	public String register(@Valid @ModelAttribute("registerForm") RegisterForm form, BindingResult bindingResult, Model model, HttpSession session) {
-		if (!form.getPassword().equals(form.getConfirmPassword())) {
+		if (form.getPassword() != null && form.getConfirmPassword() != null && !form.getPassword().equals(form.getConfirmPassword())) {
 			bindingResult.rejectValue("confirmPassword", "password.mismatch", "Passwords do not match");
 		}
 
@@ -65,7 +61,8 @@ public class AuthController {
 		}
 
 		if (bindingResult.hasErrors()) {
-			return "auth/register";
+			prepareAuthModel(model, "register", null);
+			return "auth/auth";
 		}
 
 		var student = authService.register(form.getFullName().trim(), form.getEmail(), form.getPassword());
@@ -76,7 +73,18 @@ public class AuthController {
 	@PostMapping("/logout")
 	public String logout(HttpSession session) {
 		session.invalidate();
-		return "redirect:/login";
+		return "redirect:/";
+	}
+
+	private void prepareAuthModel(Model model, String activeMode, String error) {
+		if (!model.containsAttribute("loginForm")) {
+			model.addAttribute("loginForm", new LoginForm());
+		}
+		if (!model.containsAttribute("registerForm")) {
+			model.addAttribute("registerForm", new RegisterForm());
+		}
+		model.addAttribute("activeMode", activeMode);
+		model.addAttribute("error", error);
 	}
 }
 

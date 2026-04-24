@@ -9,6 +9,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import java.util.List;
+
 @Controller
 public class DashboardController {
 	private final AuthService authService;
@@ -21,14 +23,45 @@ public class DashboardController {
 
 	@GetMapping("/dashboard")
 	public String dashboard(HttpSession session, Model model) {
-		Long studentId = (Long) session.getAttribute(SessionKeys.STUDENT_ID);
+		Object studentIdAttr = session.getAttribute(SessionKeys.STUDENT_ID);
+		Long studentId = null;
+		if (studentIdAttr instanceof Long id) {
+			studentId = id;
+		} else if (studentIdAttr instanceof Number number) {
+			studentId = number.longValue();
+		} else if (studentIdAttr instanceof String text) {
+			try {
+				studentId = Long.parseLong(text);
+			} catch (NumberFormatException ignored) {
+				studentId = null;
+			}
+		}
+		if (studentId == null) {
+			session.invalidate();
+			return "redirect:/login";
+		}
 		Student student = authService.findById(studentId).orElse(null);
 		if (student == null) {
 			session.invalidate();
 			return "redirect:/login";
 		}
 		model.addAttribute("student", student);
-		model.addAttribute("results", quizResultRepository.findTop20ByStudentIdOrderBySubmittedAtDesc(studentId));
+		List<com.example.questionbank.QuizResult> results = quizResultRepository.findTop20ByStudentIdOrderBySubmittedAtDesc(studentId);
+		int currentStreak = 0;
+		for (var result : results) {
+			if (result.getPercentage() >= 60.0) {
+				currentStreak++;
+			} else {
+				break;
+			}
+		}
+		model.addAttribute("results", results);
+		model.addAttribute("quizCount", quizResultRepository.countByStudentId(studentId));
+		model.addAttribute("bestPct", quizResultRepository.bestPercentage(studentId));
+		model.addAttribute("lastScorePct", results.isEmpty() ? 0.0 : results.get(0).getPercentage());
+		model.addAttribute("currentStreak", currentStreak);
+		model.addAttribute("totalPoints", student.getTotalPoints());
+		model.addAttribute("leaderboardVisible", student.isLeaderboardVisible());
 		return "dashboard";
 	}
 }

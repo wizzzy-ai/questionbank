@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 public class BookmarksController {
@@ -39,8 +40,16 @@ public class BookmarksController {
 			session.invalidate();
 			return "redirect:/login";
 		}
+		var bookmarks = bookmarkRepository.findAllByStudentIdFetchQuestionOrderByCreatedAtDesc(studentId);
 		model.addAttribute("student", student);
-		model.addAttribute("bookmarks", bookmarkRepository.findAllByStudentIdFetchQuestionOrderByCreatedAtDesc(studentId));
+		model.addAttribute("bookmarks", bookmarks);
+		model.addAttribute("bookmarkCount", bookmarks.size());
+		model.addAttribute("categoryCount", bookmarks.stream()
+				.map(Bookmark::getQuestion)
+				.map(Question::getCategory)
+				.filter(category -> category != null && !category.isBlank())
+				.collect(Collectors.toSet())
+				.size());
 		return "bookmarks";
 	}
 

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<nav th:fragment="appNav(activePage)"
+     class="app-pill-nav-shell">
+  <div class="app-pill-nav">
+    <a class="app-pill-nav__brand" th:href="@{/dashboard}">
+      <span class="app-pill-nav__brand-badge">Q</span>
+      <span class="app-pill-nav__brand-text"><span>Q</span>uestion Bank</span>
+    </a>
+
+    <div class="app-pill-nav__links">
+      <a th:href="@{/dashboard}"
+         th:class="${'app-pill-nav__link' + (activePage == 'dashboard' ? ' is-active' : '')}">
+        Dashboard
+      </a>
+      <a th:href="@{/quiz/setup}"
+         th:class="${'app-pill-nav__link' + (activePage == 'quiz' ? ' is-active' : '')}">
+        Start test
+      </a>
+      <a th:href="@{/dashboard} + '#recentResults'"
+         th:class="${'app-pill-nav__link' + (activePage == 'results' ? ' is-active' : '')}">
+        Results
+      </a>
+      <a th:href="@{/bookmarks}"
+         th:class="${'app-pill-nav__link' + (activePage == 'bookmarks' ? ' is-active' : '')}">
+        Bookmarked
+      </a>
+      <a th:href="@{/leaderboard}"
+         th:class="${'app-pill-nav__link' + (activePage == 'leaderboard' ? ' is-active' : '')}">
+        Leaderboard
+      </a>
+      <a th:href="@{/profile}"
+         th:class="${'app-pill-nav__link' + (activePage == 'profile' ? ' is-active' : '')}">
+        Profile
+      </a>
+    </div>
+
+    <div class="app-pill-nav__user" th:if="${student != null}">
+      <button type="button"
+              class="app-pill-nav__user-toggle"
+              data-nav-dropdown-toggle
+              aria-expanded="false">
+        <span class="app-pill-nav__avatar"
+              th:text="${student.fullName != null and !#strings.isEmpty(student.fullName) ? #strings.substring(student.fullName,0,1) : 'U'}">S</span>
+        <span class="app-pill-nav__username" th:text="${student.fullName}">Sam Josh</span>
+        <span class="app-pill-nav__chevron">▼</span>
+      </button>
+
+      <div class="app-pill-nav__dropdown" data-nav-dropdown>
+        <div class="app-pill-nav__dropdown-header">
+          <div class="app-pill-nav__dropdown-name" th:text="${student.fullName}">Sam Josh</div>
+          <div class="app-pill-nav__dropdown-email" th:text="${student.email}">samjosh@gmail.com</div>
+        </div>
+
+        <a class="app-pill-nav__dropdown-item" th:href="@{/profile}">
+          <i class="bi bi-person-circle"></i>
+          <span>Profile</span>
+        </a>
+
+        <a class="app-pill-nav__dropdown-item" th:href="@{/dashboard}">
+          <i class="bi bi-grid"></i>
+          <span>Dashboard</span>
+        </a>
+
+        <a class="app-pill-nav__dropdown-item" th:href="@{/leaderboard}">
+          <i class="bi bi-trophy"></i>
+          <span>Leaderboard</span>
+        </a>
+
+        <form th:action="@{/logout}" method="post" class="m-0">
+          <button type="submit" class="app-pill-nav__dropdown-item is-logout">
+            <i class="bi bi-box-arrow-right"></i>
+            <span>Logout</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      if (window.__appPillNavInitialized) {
+        return;
+      }
+      window.__appPillNavInitialized = true;
+
+      document.addEventListener('click', function (event) {
+        var toggle = event.target.closest('[data-nav-dropdown-toggle]');
+        var openMenus = document.querySelectorAll('.app-pill-nav__user.is-open');
+
+        openMenus.forEach(function (menu) {
+          if (!toggle || !menu.contains(toggle)) {
+            menu.classList.remove('is-open');
+            var existingToggle = menu.querySelector('[data-nav-dropdown-toggle]');
+            if (existingToggle) {
+              existingToggle.setAttribute('aria-expanded', 'false');
+            }
+          }
+        });
+
+        if (toggle) {
+          var parent = toggle.closest('.app-pill-nav__user');
+          var shouldOpen = !parent.classList.contains('is-open');
+          parent.classList.toggle('is-open', shouldOpen);
+          toggle.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+        }
+      });
+    })();
+  </script>
+</nav>
+
+</body>
+</html>

@@ -3,204 +3,243 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Profile • Question Bank</title>
+  <title>Profile - Question Bank</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
   <link th:href="@{/css/app.css}" rel="stylesheet"/>
 </head>
-<body class="has-bottom-nav">
+<body>
 
 <div class="page-load-bar"></div>
 
-<div th:insert="~{fragments/sidebar :: sidebar('profile')}"></div>
-<div th:insert="~{fragments/bottom_nav :: bottomNav('profile')}"></div>
+<div th:insert="~{fragments/app_nav :: appNav('profile')}"></div>
 
-<nav class="navbar navbar-expand-lg navbar-dark">
-  <div class="container">
-    <button class="navbar-menu-btn me-3" type="button"
-            data-bs-toggle="offcanvas" data-bs-target="#appSidebar"
-            aria-controls="appSidebar" aria-label="Open menu">
-      <i class="bi bi-list"></i>
-    </button>
+<main class="container py-4 py-md-5 content-fade">
+  <section class="profile-shell profile-shell--spacious">
+    <div class="profile-hero">
+      <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
+        <div>
+          <span class="section-label"><i class="bi bi-person-vcard"></i>Profile</span>
+          <h1 class="profile-hero__title mt-3 mb-0">Your learning profile.</h1>
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <span class="pill" th:text="${leaderboardVisible ? 'Leaderboard visible' : 'Leaderboard hidden'}">Leaderboard visible</span>
+          <a class="btn btn-gold-outline" th:if="${leaderboardVisible}" th:href="@{/players/{id}(id=${student.id})}">
+            <i class="bi bi-box-arrow-up-right me-2"></i>View public card
+          </a>
+        </div>
+      </div>
 
-    <a class="navbar-brand" th:href="@{/dashboard}">
-      <span class="brand-logo-block">QB</span>
-      Question Bank
-    </a>
-
-    <div class="ms-auto d-flex align-items-center gap-2">
-      <span class="pill-nav d-none d-sm-inline-flex">
-        <i class="bi bi-person-circle" style="color:var(--gold);font-size:0.95rem;"></i>
-        <span>Profile</span>
-      </span>
-      <form th:action="@{/logout}" method="post" class="m-0">
-        <button class="btn btn-outline-light btn-sm" type="submit">
-          <i class="bi bi-box-arrow-right me-1"></i><span class="d-none d-sm-inline">Logout</span>
-        </button>
-      </form>
+      <div class="hero-kpis mt-4">
+        <div class="hero-kpi">
+          <span class="hero-kpi__label">Average</span>
+          <span class="hero-kpi__value hero-kpi__value--accent"
+                th:text="${#numbers.formatDecimal(avgPct,0,1)} + '%'">0%</span>
+        </div>
+        <div class="hero-kpi">
+          <span class="hero-kpi__label">Best</span>
+          <span class="hero-kpi__value" th:text="${#numbers.formatDecimal(bestPct,0,1)} + '%'">0%</span>
+        </div>
+        <div class="hero-kpi">
+          <span class="hero-kpi__label">Tests</span>
+          <span class="hero-kpi__value" th:text="${quizCount}">0</span>
+        </div>
+      </div>
     </div>
-  </div>
-</nav>
 
-<main class="container py-4 py-md-5">
-  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
-    <div>
-      <h1 class="h5 fw-bold mb-1">
-        <i class="bi bi-person-circle text-gold me-2"></i>Your Profile
-      </h1>
-      <p class="text-muted-2 small mb-0">View your progress and update your details.</p>
+    <div th:if="${updated}" class="alert alert-success">
+      <i class="bi bi-check2-circle me-2"></i>Profile updated.
     </div>
-    <span class="pill" th:text="${quizCount} + ' tests'">0 tests</span>
-  </div>
 
-  <div th:if="${updated}" class="alert alert-success">
-    <i class="bi bi-check2-circle me-2"></i>Profile updated.
-  </div>
-
-  <div class="row g-4">
-    <div class="col-12 col-lg-5">
-      <div class="card card-glass">
-        <div class="card-body p-4">
-          <div class="d-flex align-items-center gap-3 mb-3">
-            <div style="width:54px;height:54px;border-radius:50%;background:var(--gold-dim);border:2px solid var(--border-gold);display:flex;align-items:center;justify-content:center;">
-              <span class="fw-bold text-gold" style="font-size:1.05rem;"
-                    th:text="${#strings.substring(student.fullName,0,1)}">U</span>
+    <div class="profile-layout">
+      <aside class="profile-sidebar">
+        <div class="card card-glass profile-sidebar__card">
+          <div class="card-body p-4 p-lg-4">
+            <div class="d-flex align-items-center gap-3 mb-4">
+              <div class="profile-avatar"
+                   th:text="${student.fullName != null and !#strings.isEmpty(student.fullName) ? #strings.substring(student.fullName,0,1) : 'U'}">S</div>
+              <div class="min-w-0">
+                <div class="fw-bold text-truncate" style="font-size:1.05rem;" th:text="${student.fullName}">Student</div>
+                <div class="text-muted-2 text-truncate small" th:text="${student.email}">email@example.com</div>
+              </div>
             </div>
-            <div style="min-width:0;">
-              <div class="fw-bold text-truncate" style="font-size:1.05rem;" th:text="${student.fullName}">Student</div>
-              <div class="text-muted-2 text-truncate" th:text="${student.email}">email@example.com</div>
-            </div>
-          </div>
 
-          <div class="card-inner p-3">
-            <div class="section-label mb-2"><i class="bi bi-pencil-square me-1"></i>Edit</div>
-            <form th:action="@{/profile/update}" method="post" class="vstack gap-2 m-0">
-              <label class="form-label small text-muted-2 mb-0" for="fullName">Full name</label>
-              <input id="fullName" name="fullName" class="form-control"
-                     th:value="${student.fullName}" maxlength="120" required/>
-              <button class="btn btn-gold w-100 mt-1" type="submit">
+            <div class="vstack gap-3 mb-4">
+              <div class="card-inner p-3">
+                <div class="text-muted-2 small">Total points</div>
+                <div class="fw-bold metric-accent mt-1" style="font-size:1.65rem;" th:text="${totalPoints}">0</div>
+              </div>
+              <div class="card-inner p-3">
+                <div class="text-muted-2 small">Leaderboard rank</div>
+                <div class="fw-bold mt-1" th:text="${leaderboardRank != null ? '#' + leaderboardRank : 'Hidden'}">#1</div>
+              </div>
+            </div>
+
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+              <div>
+                <span class="section-label"><i class="bi bi-pencil-square"></i>Edit Profile</span>
+                <h2 class="h5 fw-bold mt-2 mb-0">Identity card</h2>
+              </div>
+            </div>
+
+            <form th:action="@{/profile/update}" method="post" class="vstack gap-3 m-0">
+              <div>
+                <label class="form-label" for="fullName">Full name</label>
+                <input id="fullName" name="fullName" class="form-control"
+                       th:value="${student.fullName}" maxlength="120" required/>
+              </div>
+              <div>
+                <label class="form-label" for="emailDisplay">Email address</label>
+                <input id="emailDisplay" class="form-control" th:value="${student.email}" disabled/>
+              </div>
+              <div class="profile-toggle card-inner p-3">
+                <div class="d-flex align-items-start justify-content-between gap-3">
+                  <div>
+                    <div class="fw-bold">Show on leaderboard</div>
+                    <div class="text-muted-2 small mt-1">Turn this off if you want your rank and stats hidden from other players.</div>
+                  </div>
+                  <div class="form-check form-switch m-0">
+                    <input class="form-check-input" type="checkbox" role="switch" id="leaderboardVisible"
+                           name="leaderboardVisible" th:checked="${leaderboardVisible}"/>
+                  </div>
+                </div>
+              </div>
+              <button class="btn btn-gold w-100 profile-save-btn" type="submit">
                 <i class="bi bi-save2 me-2"></i>Save Changes
               </button>
             </form>
           </div>
+        </div>
+      </aside>
 
-          <div class="mt-3 text-subtle small">
-            <i class="bi bi-shield-check me-1"></i>Password updates are not available yet.
+      <div class="profile-main">
+        <div class="card card-glass">
+          <div class="card-body p-4 p-lg-5">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+              <div>
+                <span class="section-label"><i class="bi bi-bar-chart-line"></i>Visual Analytics</span>
+                <h2 class="h4 fw-bold mt-2 mb-1">Performance trends</h2>
+                <p class="text-muted-2 mb-0">A quick read on momentum, accuracy, and category strength.</p>
+              </div>
+              <span class="pill" th:text="${totalAnswered} + ' answers tracked'">0 answers tracked</span>
+            </div>
+
+            <div class="row g-4">
+              <div class="col-12 col-xl-6">
+                <div class="card-inner p-4 h-100">
+                  <div class="text-muted-2 small mb-3">Recent performance</div>
+                  <canvas id="recentChart" height="160" aria-label="Recent performance chart"></canvas>
+                </div>
+              </div>
+              <div class="col-12 col-xl-6">
+                <div class="card-inner p-4 h-100">
+                  <div class="text-muted-2 small mb-3">Correct vs incorrect</div>
+                  <canvas id="accuracyChart" height="160" aria-label="Accuracy chart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-glass mt-4 mt-lg-5">
+          <div class="card-body p-4 p-lg-5">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+              <div>
+                <span class="section-label"><i class="bi bi-bullseye"></i>Performance Breakdown</span>
+                <h2 class="h4 fw-bold mt-2 mb-1">Accuracy and category detail</h2>
+              </div>
+              <span class="pill" th:text="${#numbers.formatDecimal(accuracyPct,0,1)} + '% accuracy'">0% accuracy</span>
+            </div>
+
+            <div class="row g-4 align-items-start">
+              <div class="col-12 col-xl-4">
+                <div class="vstack gap-3">
+                  <div class="stat-card">
+                    <div class="text-muted-2 small">Points</div>
+                    <div class="fw-bold metric-accent mt-2" style="font-size:2rem;" th:text="${totalPoints}">0</div>
+                    <div class="text-subtle mt-2">Your current game score.</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="text-muted-2 small">Answered</div>
+                    <div class="fw-bold mt-2" style="font-size:2rem;" th:text="${totalAnswered}">0</div>
+                    <div class="text-subtle mt-2">Questions completed across quizzes.</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="text-muted-2 small">Strongest category</div>
+                    <div class="fw-bold mt-2" style="font-size:1.3rem;"
+                         th:text="${strongestCategory != null ? strongestCategory.category : 'No category data yet'}">Science</div>
+                    <div class="text-subtle mt-2"
+                         th:text="${strongestCategory != null and strongestCategory.total > 0 ? #numbers.formatDecimal((strongestCategory.correct * 100.0 / strongestCategory.total),0,1) + '% accuracy in your best category' : 'Take more quizzes to unlock category insights.'}">
+                      Take more quizzes to unlock category insights.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12 col-xl-8">
+                <div class="card-inner p-4 mb-4">
+                  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                    <span class="section-label mb-0"><i class="bi bi-diagram-3"></i>Top Categories</span>
+                    <span class="text-muted-2 small">Category accuracy view</span>
+                  </div>
+
+                  <div th:if="${#lists.isEmpty(categoryAccuracy)}" class="text-muted-2">
+                    Take a test to unlock category-level insights.
+                  </div>
+
+                  <div th:if="${!#lists.isEmpty(categoryAccuracy)}" class="table-responsive">
+                    <table class="table table-dark-custom table-hover align-middle mb-0">
+                      <thead>
+                      <tr>
+                        <th>Category</th>
+                        <th class="text-center">Correct</th>
+                        <th class="text-center">Total</th>
+                        <th class="text-end">%</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <tr th:each="row : ${categoryAccuracy}">
+                        <td>
+                          <span class="badge text-bg-secondary" th:text="${row.category}">Java</span>
+                        </td>
+                        <td class="text-center fw-bold metric-accent" th:text="${row.correct}">0</td>
+                        <td class="text-center text-muted-2" th:text="${row.total}">0</td>
+                        <td class="text-end fw-bold"
+                            th:text="${row.total == 0 ? '0%' : #numbers.formatDecimal((row.correct * 100.0 / row.total), 0, 1) + '%'}">0%</td>
+                      </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div class="card-inner p-4">
+                  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                    <span class="section-label mb-0"><i class="bi bi-award"></i>Best Runs</span>
+                    <span class="text-muted-2 small">Top 5 performances</span>
+                  </div>
+
+                  <div th:if="${#lists.isEmpty(topResults)}" class="text-muted-2">
+                    Your best quiz runs will appear here after you complete a test.
+                  </div>
+
+                  <div th:if="${!#lists.isEmpty(topResults)}" class="vstack gap-3">
+                    <div th:each="r : ${topResults}" class="profile-run">
+                      <div>
+                        <div class="fw-bold" th:text="${#numbers.formatDecimal(r.percentage,0,1)} + '%'">0%</div>
+                        <div class="text-muted-2 small"
+                             th:text="${r.submittedAt != null ? #temporals.format(r.submittedAt.atZone(T(java.time.ZoneId).systemDefault()), 'dd MMM yyyy') : 'N/A'}">24 Apr 2026</div>
+                      </div>
+                      <span class="pill" th:text="${r.score} + '/' + ${r.totalQuestions}">8/10</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
-
-    <div class="col-12 col-lg-7">
-      <div class="row g-3">
-        <div class="col-6">
-          <div class="stat-card">
-            <div class="text-muted-2" style="font-size:0.75rem;">Average</div>
-            <div class="fw-bold text-gold" style="font-size:1.35rem;" th:text="${#numbers.formatDecimal(avgPct,0,1)} + '%'">0%</div>
-          </div>
-        </div>
-        <div class="col-6">
-          <div class="stat-card">
-            <div class="text-muted-2" style="font-size:0.75rem;">Best</div>
-            <div class="fw-bold text-gold" style="font-size:1.35rem;" th:text="${#numbers.formatDecimal(bestPct,0,1)} + '%'">0%</div>
-          </div>
-        </div>
-        <div class="col-6">
-          <div class="stat-card">
-            <div class="text-muted-2" style="font-size:0.75rem;">Answered</div>
-            <div class="fw-bold" style="font-size:1.35rem;" th:text="${totalAnswered}">0</div>
-          </div>
-        </div>
-        <div class="col-6">
-          <div class="stat-card">
-            <div class="text-muted-2" style="font-size:0.75rem;">Saved</div>
-            <div class="fw-bold" style="font-size:1.35rem;" th:text="${bookmarksCount}">0</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card card-glass mt-4">
-        <div class="card-body p-4">
-          <div class="d-flex align-items-center justify-content-between mb-2">
-            <div class="section-label mb-0"><i class="bi bi-bullseye me-1"></i>Accuracy</div>
-            <span class="pill" th:text="${#numbers.formatDecimal(accuracyPct,0,1)} + '%'">0%</span>
-          </div>
-
-          <div class="pct-bar-wrap">
-            <div class="pct-bar-track">
-              <div class="pct-bar-fill" th:style="'width:' + ${accuracyPct} + '%'"></div>
-            </div>
-            <span class="text-muted-2 small">
-              <span class="text-gold fw-semibold" th:text="${correctAnswered}">0</span> correct out of
-              <span th:text="${totalAnswered}">0</span>
-            </span>
-          </div>
-
-          <div class="mt-4">
-            <div class="section-label mb-2"><i class="bi bi-diagram-3 me-1"></i>Top categories</div>
-            <div th:if="${#lists.isEmpty(categoryAccuracy)}" class="text-muted-2 small">
-              Take a test to see category stats.
-            </div>
-            <div th:if="${!#lists.isEmpty(categoryAccuracy)}" class="table-responsive">
-              <table class="table table-dark-custom table-hover align-middle mb-0">
-                <thead>
-                <tr>
-                  <th>Category</th>
-                  <th class="text-center">Correct</th>
-                  <th class="text-center">Total</th>
-                  <th class="text-end">%</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="row : ${categoryAccuracy}">
-                  <td>
-                    <span class="badge text-bg-secondary" th:text="${row.category}">Java</span>
-                  </td>
-                  <td class="text-center text-gold fw-semibold" th:text="${row.correct}">0</td>
-                  <td class="text-center text-muted-2" th:text="${row.total}">0</td>
-                  <td class="text-end text-gold fw-semibold"
-                      th:text="${row.total == 0 ? '0%' : #numbers.formatDecimal((row.correct * 100.0 / row.total), 0, 1) + '%'}">0%</td>
-                </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <div class="card card-glass mt-4">
-        <div class="card-body p-4">
-          <div class="d-flex align-items-center justify-content-between mb-3">
-            <div class="section-label mb-0"><i class="bi bi-graph-up-arrow me-1"></i>Charts</div>
-            <span class="text-muted-2 small">Last 20 tests</span>
-          </div>
-
-          <div class="row g-3">
-            <div class="col-12 col-md-6">
-              <div class="card-inner p-3">
-                <div class="text-muted-2 small mb-2">Recent performance</div>
-                <canvas id="recentChart" height="150" aria-label="Recent performance chart"></canvas>
-              </div>
-            </div>
-            <div class="col-12 col-md-6">
-              <div class="card-inner p-3">
-                <div class="text-muted-2 small mb-2">Correct vs incorrect</div>
-                <canvas id="accuracyChart" height="150" aria-label="Accuracy chart"></canvas>
-              </div>
-            </div>
-            <div class="col-12">
-              <div class="card-inner p-3">
-                <div class="text-muted-2 small mb-2">Category accuracy</div>
-                <canvas id="categoryChart" height="120" aria-label="Category accuracy chart"></canvas>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-  </div>
+  </section>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
@@ -216,14 +255,11 @@
     var totalAnswered = /*[[${totalAnswered}]]*/ 0;
     var incorrectAnswered = Math.max(0, totalAnswered - correctAnswered);
 
-    var categoryLabels = /*[[${categoryLabels}]]*/ [];
-    var categoryPercentages = /*[[${categoryPercentages}]]*/ [];
-
-    var gridColor = 'rgba(255,255,255,0.08)';
-    var gold = '#d4af37';
-    var goldSoft = 'rgba(212,175,55,0.25)';
-    var red = '#f87171';
-    var text = 'rgba(255,255,255,0.82)';
+    var gridColor = 'rgba(180, 188, 194, 0.28)';
+    var coral = '#ff7e5f';
+    var peach = '#feb47b';
+    var slate = '#6e8698';
+    var text = '#5b6468';
 
     function safeGet(id) {
       return document.getElementById(id);
@@ -232,18 +268,15 @@
     var recentEl = safeGet('recentChart');
     if (recentEl && recentLabels.length) {
       new Chart(recentEl, {
-        type: 'line',
+        type: 'bar',
         data: {
           labels: recentLabels,
           datasets: [{
             label: 'Score %',
             data: recentPercentages,
-            borderColor: gold,
-            backgroundColor: goldSoft,
-            borderWidth: 2,
-            pointRadius: 2,
-            tension: 0.25,
-            fill: true
+            backgroundColor: [coral, peach, coral, peach, coral, peach],
+            borderRadius: 12,
+            borderSkipped: false
           }]
         },
         options: {
@@ -255,7 +288,7 @@
           scales: {
             x: {
               ticks: { color: text },
-              grid: { color: gridColor }
+              grid: { display: false }
             },
             y: {
               min: 0,
@@ -276,7 +309,7 @@
           labels: ['Correct', 'Incorrect'],
           datasets: [{
             data: [correctAnswered, incorrectAnswered],
-            backgroundColor: [gold, red],
+            backgroundColor: [coral, slate],
             borderWidth: 0
           }]
         },
@@ -288,44 +321,7 @@
               labels: { color: text }
             }
           },
-          cutout: '62%'
-        }
-      });
-    }
-
-    var categoryEl = safeGet('categoryChart');
-    if (categoryEl && categoryLabels.length) {
-      new Chart(categoryEl, {
-        type: 'bar',
-        data: {
-          labels: categoryLabels,
-          datasets: [{
-            label: 'Accuracy %',
-            data: categoryPercentages,
-            backgroundColor: goldSoft,
-            borderColor: gold,
-            borderWidth: 1.5,
-            borderRadius: 8
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { display: false },
-            tooltip: { enabled: true }
-          },
-          scales: {
-            x: {
-              ticks: { color: text },
-              grid: { color: gridColor }
-            },
-            y: {
-              min: 0,
-              max: 100,
-              ticks: { color: text, callback: function (v) { return v + '%'; } },
-              grid: { color: gridColor }
-            }
-          }
+          cutout: '68%'
         }
       });
     }

@@ -19,12 +19,12 @@ public class MainController {
 	public String home(HttpSession session) {
 		Long studentId = (Long) session.getAttribute(SessionKeys.STUDENT_ID);
 		if (studentId == null) {
-			return "redirect:/login";
+			return "welcome";
 		}
 		Student student = authService.findById(studentId).orElse(null);
 		if (student == null) {
 			session.invalidate();
-			return "redirect:/login";
+			return "welcome";
 		}
 		return "redirect:/dashboard";
 	}
