@@ -6,6 +6,7 @@ import com.example.questionbank.QuizAnswerRepository;
 import com.example.questionbank.QuizResultRepository;
 import com.example.questionbank.SessionKeys;
 import com.example.questionbank.Student;
+import com.example.questionbank.StudentRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,6 +18,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 @Controller
@@ -25,17 +27,20 @@ public class ProfileController {
 	private final QuizResultRepository quizResultRepository;
 	private final QuizAnswerRepository quizAnswerRepository;
 	private final BookmarkRepository bookmarkRepository;
+	private final StudentRepository studentRepository;
 
 	public ProfileController(
 			AuthService authService,
 			QuizResultRepository quizResultRepository,
 			QuizAnswerRepository quizAnswerRepository,
-			BookmarkRepository bookmarkRepository
+			BookmarkRepository bookmarkRepository,
+			StudentRepository studentRepository
 	) {
 		this.authService = authService;
 		this.quizResultRepository = quizResultRepository;
 		this.quizAnswerRepository = quizAnswerRepository;
 		this.bookmarkRepository = bookmarkRepository;
+		this.studentRepository = studentRepository;
 	}
 
 	@GetMapping("/profile")
@@ -76,6 +81,11 @@ public class ProfileController {
 			categoryLabels.add(row.getCategory());
 			categoryPercentages.add(pct);
 		}
+		var strongestCategory = categoryRows.stream()
+				.max(Comparator.comparingDouble(row -> row.getTotal() == null || row.getTotal() == 0
+						? 0.0
+						: (row.getCorrect() == null ? 0.0 : (row.getCorrect() * 100.0 / row.getTotal()))))
+				.orElse(null);
 
 		model.addAttribute("student", student);
 		model.addAttribute("quizCount", quizResultRepository.countByStudentId(studentId));
@@ -90,6 +100,13 @@ public class ProfileController {
 		model.addAttribute("recentPercentages", recentPercentages);
 		model.addAttribute("categoryLabels", categoryLabels);
 		model.addAttribute("categoryPercentages", categoryPercentages);
+		model.addAttribute("topResults", quizResultRepository.findTop5ByStudentIdOrderByPercentageDescSubmittedAtAsc(studentId));
+		model.addAttribute("strongestCategory", strongestCategory);
+		model.addAttribute("totalPoints", student.getTotalPoints());
+		model.addAttribute("leaderboardVisible", student.isLeaderboardVisible());
+		model.addAttribute("leaderboardRank", student.isLeaderboardVisible()
+				? studentRepository.countLeaderboardEntriesAhead(student.getTotalPoints(), student.getId()) + 1
+				: null);
 		model.addAttribute("updated", updated != null && updated);
 
 		return "profile";
@@ -98,10 +115,11 @@ public class ProfileController {
 	@PostMapping("/profile/update")
 	public String updateProfile(
 			@RequestParam("fullName") String fullName,
+			@RequestParam(value = "leaderboardVisible", defaultValue = "false") boolean leaderboardVisible,
 			HttpSession session
 	) {
 		Long studentId = (Long) session.getAttribute(SessionKeys.STUDENT_ID);
-		var updated = authService.updateFullName(studentId, fullName);
+		var updated = authService.updateProfile(studentId, fullName, leaderboardVisible);
 		if (updated.isEmpty()) {
 			return "redirect:/profile";
 		}

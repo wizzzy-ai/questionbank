@@ -23,6 +23,12 @@ public class Student {
 	@Column(nullable = false, length = 100)
 	private String passwordHash;
 
+	@Column(nullable = false)
+	private int totalPoints = 0;
+
+	@Column(nullable = false)
+	private boolean leaderboardVisible = true;
+
 	public Student() {
 	}
 
@@ -30,6 +36,8 @@ public class Student {
 		this.fullName = fullName;
 		this.email = email;
 		this.passwordHash = passwordHash;
+		this.totalPoints = 0;
+		this.leaderboardVisible = true;
 	}
 
 	public Long getId() {
@@ -62,6 +70,22 @@ public class Student {
 
 	public void setPasswordHash(String passwordHash) {
 		this.passwordHash = passwordHash;
+	}
+
+	public int getTotalPoints() {
+		return totalPoints;
+	}
+
+	public void setTotalPoints(int totalPoints) {
+		this.totalPoints = Math.max(0, totalPoints);
+	}
+
+	public boolean isLeaderboardVisible() {
+		return leaderboardVisible;
+	}
+
+	public void setLeaderboardVisible(boolean leaderboardVisible) {
+		this.leaderboardVisible = leaderboardVisible;
 	}
 }
 

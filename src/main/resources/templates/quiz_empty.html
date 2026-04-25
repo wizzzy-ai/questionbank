@@ -8,27 +8,9 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
   <link th:href="@{/css/app.css}" rel="stylesheet"/>
 </head>
-<body class="has-bottom-nav">
+<body>
 
-<!-- Sidebar -->
-<div th:insert="~{fragments/sidebar :: sidebar('quiz')}"></div>
-<!-- Mobile bottom nav -->
-<div th:insert="~{fragments/bottom_nav :: bottomNav('quiz')}"></div>
-
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark">
-  <div class="container">
-    <button class="navbar-menu-btn me-3" type="button"
-            data-bs-toggle="offcanvas" data-bs-target="#appSidebar"
-            aria-controls="appSidebar" aria-label="Open menu">
-      <i class="bi bi-list"></i>
-    </button>
-    <a class="navbar-brand" th:href="@{/dashboard}">
-      <span class="brand-logo-block">QB</span>
-      Question Bank
-    </a>
-  </div>
-</nav>
+<div th:insert="~{fragments/app_nav :: appNav('quiz')}"></div>
 
 <main class="container py-5">
   <div class="row justify-content-center">

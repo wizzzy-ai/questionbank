@@ -3,6 +3,7 @@ package com.example.questionbank.web;
 import com.example.questionbank.AuthService;
 import com.example.questionbank.BookmarkRepository;
 import com.example.questionbank.Question;
+import com.example.questionbank.QuestionDifficultyBand;
 import com.example.questionbank.QuestionRepository;
 import com.example.questionbank.QuizAnswer;
 import com.example.questionbank.QuizAnswerRepository;
@@ -19,11 +20,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.Set;
 
@@ -43,20 +45,35 @@ public class QuizController {
 		this.quizAnswerRepository = quizAnswerRepository;
 	}
 
+	@GetMapping("/quiz/setup")
+	public String setup(HttpSession session, Model model) {
+		Long studentId = (Long) session.getAttribute(SessionKeys.STUDENT_ID);
+		authService.findById(studentId).ifPresent(student -> model.addAttribute("student", student));
+		model.addAttribute("topics", questionRepository.findDistinctCategories());
+		return "quiz_setup";
+	}
+
 	@GetMapping("/quiz/start")
 	public String start(
 			@RequestParam(value = "count", defaultValue = "10") int count,
 			@RequestParam(value = "difficulty", required = false) String difficulty,
+			@RequestParam(value = "topics", required = false) List<String> topics,
+			@RequestParam(value = "mode", required = false) String mode,
 			HttpSession session,
 			Model model
 	) {
 		int quizCount = Math.max(5, Math.min(25, count));
 
 		Long studentId = (Long) session.getAttribute(SessionKeys.STUDENT_ID);
+		List<String> selectedTopics = normalizeTopics(topics);
+		String normalizedDifficulty = normalizeDifficulty(difficulty);
+		String normalizedMode = mode == null ? "" : mode.trim().toLowerCase();
 
 		List<Question> questions;
-		if (difficulty != null && !difficulty.isBlank()) {
-			questions = pickQuestionsForDifficulty(quizCount, difficulty.trim().toUpperCase());
+		if ("random".equals(normalizedMode)) {
+			questions = pickQuestions(quizCount, null, List.of());
+		} else if (!selectedTopics.isEmpty() || normalizedDifficulty != null) {
+			questions = pickQuestions(quizCount, normalizedDifficulty, selectedTopics);
 		} else if (studentId != null) {
 			questions = pickAdaptiveQuestionsForStudent(quizCount, studentId);
 		} else {
@@ -78,6 +95,8 @@ public class QuizController {
 					.toList();
 			model.addAttribute("questions", viewQuestions);
 			model.addAttribute("total", questions.size());
+			model.addAttribute("selectedTopics", selectedTopics);
+			model.addAttribute("selectedDifficulty", normalizedDifficulty);
 
 		Set<Long> bookmarkedQuestionIds = Set.of();
 		if (studentId != null) {
@@ -88,14 +107,28 @@ public class QuizController {
 		return "quiz";
 	}
 
-	private List<Question> pickQuestionsForDifficulty(int quizCount, String band) {
-		int poolSize = Math.min(quizCount * 8, 200);
-		List<Question> pool = questionRepository.findRandomQuestions(poolSize);
+	private List<Question> pickQuestions(int quizCount, String band, List<String> topics) {
+		List<Question> pool = fetchPool(band, topics);
+		Collections.shuffle(pool);
+		if (pool.size() >= quizCount) {
+			return new ArrayList<>(pool.subList(0, quizCount));
+		}
 
-		return pool.stream()
-				.filter(q -> q.getDifficultyBand().name().equalsIgnoreCase(band))
-				.limit(quizCount)
-				.collect(Collectors.toList());
+		List<Question> fallbackPool = fetchFallbackPool(quizCount, topics);
+		Set<Long> pickedIds = pool.stream().map(Question::getId).filter(Objects::nonNull).collect(Collectors.toSet());
+		for (Question question : fallbackPool) {
+			if (pool.size() >= quizCount) {
+				break;
+			}
+			if (question.getId() != null && pickedIds.contains(question.getId())) {
+				continue;
+			}
+			pool.add(question);
+			if (question.getId() != null) {
+				pickedIds.add(question.getId());
+			}
+		}
+		return pool;
 	}
 
 	private List<Question> pickAdaptiveQuestionsForStudent(int quizCount, Long studentId) {
@@ -104,24 +137,7 @@ public class QuizController {
 
 		double accuracy = totalAnswered == 0 ? 0.65 : (correctAnswered * 1.0 / totalAnswered);
 		String targetBand = accuracy >= 0.80 ? "HARD" : (accuracy >= 0.60 ? "MEDIUM" : "EASY");
-
-		List<Question> picked = pickQuestionsForDifficulty(quizCount, targetBand);
-		if (picked.size() >= quizCount) {
-			return picked;
-		}
-
-		List<Long> pickedIds = picked.stream().map(Question::getId).filter(Objects::nonNull).toList();
-		List<Question> fallbackPool = questionRepository.findRandomQuestions(Math.min(quizCount * 10, 250));
-		for (Question q : fallbackPool) {
-			if (picked.size() >= quizCount) {
-				break;
-			}
-			if (q.getId() != null && pickedIds.contains(q.getId())) {
-				continue;
-			}
-			picked.add(q);
-		}
-		return picked;
+		return pickQuestions(quizCount, targetBand, List.of());
 	}
 
 	@PostMapping("/quiz/submit")
@@ -156,6 +172,9 @@ public class QuizController {
 
 		double percentage = total == 0 ? 0.0 : (score * 100.0 / total);
 		QuizResult result = quizResultRepository.save(new QuizResult(student, score, total, percentage));
+		int pointsAwarded = calculatePoints(score, total, percentage);
+		student.setTotalPoints(student.getTotalPoints() + pointsAwarded);
+		authService.save(student);
 
 		List<QuizAnswer> answersToSave = new ArrayList<>(questions.size());
 		for (QuestionResultItem item : breakdown) {
@@ -184,6 +203,65 @@ public class QuizController {
 		model.addAttribute("result", result);
 		model.addAttribute("student", student);
 		model.addAttribute("breakdown", breakdown);
+		model.addAttribute("pointsAwarded", pointsAwarded);
+		model.addAttribute("totalPoints", student.getTotalPoints());
 		return "result";
+	}
+
+	private int calculatePoints(int score, int total, double percentage) {
+		int completionPoints = 10;
+		int correctAnswerPoints = score * 5;
+		int perfectBonus = score == total && total > 0 ? 25 : 0;
+		int performanceBonus = percentage >= 90.0 ? 20 : (percentage >= 75.0 ? 12 : (percentage >= 60.0 ? 6 : 0));
+		return completionPoints + correctAnswerPoints + perfectBonus + performanceBonus;
+	}
+
+	private List<Question> fetchPool(String band, Collection<String> topics) {
+		QuestionDifficultyBand difficultyBand = parseDifficultyBand(band);
+		if (difficultyBand != null && topics != null && !topics.isEmpty()) {
+			return new ArrayList<>(questionRepository.findByDifficultyBandAndCategoryIn(difficultyBand, topics));
+		}
+		if (difficultyBand != null) {
+			return new ArrayList<>(questionRepository.findByDifficultyBand(difficultyBand));
+		}
+		if (topics != null && !topics.isEmpty()) {
+			return new ArrayList<>(questionRepository.findByCategoryIn(topics));
+		}
+		return new ArrayList<>(questionRepository.findRandomQuestions(250));
+	}
+
+	private List<Question> fetchFallbackPool(int quizCount, Collection<String> topics) {
+		if (topics != null && !topics.isEmpty()) {
+			return new ArrayList<>(questionRepository.findByCategoryIn(topics));
+		}
+		return new ArrayList<>(questionRepository.findRandomQuestions(Math.min(quizCount * 10, 250)));
+	}
+
+	private QuestionDifficultyBand parseDifficultyBand(String band) {
+		if (band == null || band.isBlank()) {
+			return null;
+		}
+		try {
+			return QuestionDifficultyBand.valueOf(band.trim().toUpperCase());
+		} catch (IllegalArgumentException ignored) {
+			return null;
+		}
+	}
+
+	private String normalizeDifficulty(String difficulty) {
+		QuestionDifficultyBand band = parseDifficultyBand(difficulty);
+		return band == null ? null : band.name();
+	}
+
+	private List<String> normalizeTopics(List<String> topics) {
+		if (topics == null || topics.isEmpty()) {
+			return List.of();
+		}
+		return topics.stream()
+				.filter(Objects::nonNull)
+				.map(String::trim)
+				.filter(topic -> !topic.isBlank())
+				.distinct()
+				.toList();
 	}
 }

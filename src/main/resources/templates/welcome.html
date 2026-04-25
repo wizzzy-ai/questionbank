@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}" href="/favicon.svg">
+    <title>SecureQuiz | Online Question Bank</title>
+    <style>
+        :root {
+            --cream: #FFF8F0;
+            --cream-deep: #FFF4E8;
+            --coral: #FF7E5F;
+            --coral-dark: #ff7251;
+            --terracotta: #D98C6C;
+            --gold: #D8B26E;
+            --charcoal: #2D3436;
+            --white: #ffffff;
+            --shadow-soft: 0 14px 35px rgba(45, 52, 54, 0.08);
+            --shadow-warm: 0 18px 45px rgba(255, 126, 95, 0.18);
+            --radius-xl: 28px;
+            --radius-2xl: 36px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--charcoal);
+            background:
+                radial-gradient(circle at top left, rgba(216, 178, 110, 0.28), transparent 24%),
+                radial-gradient(circle at top right, rgba(255, 126, 95, 0.20), transparent 30%),
+                linear-gradient(180deg, var(--cream) 0%, var(--cream-deep) 48%, var(--cream) 100%);
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .page {
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 20px 16px 40px;
+        }
+
+        .sticky-header {
+            position: sticky;
+            top: 16px;
+            z-index: 50;
+        }
+
+        .glass-nav {
+            max-width: 1152px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 16px 20px;
+            border-radius: var(--radius-xl);
+            background: rgba(255, 255, 255, 0.60);
+            border: 1px solid rgba(255, 255, 255, 0.70);
+            box-shadow: var(--shadow-soft);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--coral);
+            background: rgba(255, 126, 95, 0.15);
+            flex-shrink: 0;
+        }
+
+        .brand-title {
+            display: block;
+            font-size: 1.125rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-subtitle {
+            display: block;
+            font-size: 0.75rem;
+            color: rgba(45, 52, 54, 0.55);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: rgba(45, 52, 54, 0.70);
+            transition: color 0.2s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--coral);
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 48px;
+            padding: 0 24px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            border: 1px solid transparent;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-light {
+            background: var(--white);
+            color: var(--charcoal);
+            box-shadow: var(--shadow-soft);
+            border-color: rgba(45, 52, 54, 0.08);
+        }
+
+        .btn-primary {
+            background: var(--coral);
+            color: var(--white);
+            box-shadow: var(--shadow-warm);
+        }
+
+        .btn-primary:hover {
+            background: var(--coral-dark);
+        }
+
+        .main {
+            position: relative;
+        }
+
+        .decor-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(56px);
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .decor-orb-left {
+            top: 96px;
+            left: 0;
+            width: 240px;
+            height: 240px;
+            background: rgba(216, 178, 110, 0.30);
+        }
+
+        .decor-orb-right {
+            top: 128px;
+            right: 0;
+            width: 288px;
+            height: 288px;
+            background: rgba(255, 126, 95, 0.25);
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            align-items: center;
+            gap: 56px;
+            padding: 80px 8px;
+        }
+
+        .hero-copy {
+            position: relative;
+            z-index: 1;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-radius: 999px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: rgba(45, 52, 54, 0.72);
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .icon-sm {
+            width: 16px;
+            height: 16px;
+        }
+
+        .hero-title {
+            margin-top: 24px;
+            font-size: clamp(3rem, 5vw, 4.5rem);
+            line-height: 1.05;
+            font-weight: 900;
+            letter-spacing: -0.04em;
+        }
+
+        .hero-text {
+            margin-top: 24px;
+            max-width: 620px;
+            font-size: 1.125rem;
+            line-height: 1.8;
+            color: rgba(45, 52, 54, 0.70);
+        }
+
+        .hero-actions {
+            margin-top: 32px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .hero-meta {
+            margin-top: 40px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            color: rgba(45, 52, 54, 0.60);
+            font-size: 0.95rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hero-visual {
+            position: relative;
+        }
+
+        .visual-glow {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(56px);
+            pointer-events: none;
+        }
+
+        .visual-glow-main {
+            top: 32px;
+            left: 40px;
+            right: 40px;
+            height: 288px;
+            background: rgba(255, 126, 95, 0.25);
+        }
+
+        .visual-glow-gold {
+            top: 96px;
+            left: -8px;
+            width: 128px;
+            height: 128px;
+            background: rgba(216, 178, 110, 0.30);
+        }
+
+        .visual-glow-terra {
+            top: 32px;
+            right: 0;
+            width: 128px;
+            height: 128px;
+            background: rgba(217, 140, 108, 0.25);
+        }
+        .quiz-panel {
+            position: relative;
+            max-width: 576px;
+            margin: 0 auto;
+            padding: 24px;
+            border-radius: var(--radius-2xl);
+            background: rgba(255, 255, 255, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.80);
+            box-shadow: var(--shadow-soft);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .quiz-tag {
+            position: absolute;
+            top: -16px;
+            right: -16px;
+            padding: 16px 20px;
+            border-radius: 24px;
+            background: rgba(255, 126, 95, 0.15);
+            color: var(--coral);
+            font-size: 0.95rem;
+            font-weight: 700;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .quiz-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 20px;
+        }
+
+        .card {
+            border-radius: 28px;
+            background: var(--white);
+            box-shadow: var(--shadow-soft);
+            border: 1px solid rgba(45, 52, 54, 0.05);
+        }
+
+        .question-card {
+            padding: 24px;
+        }
+
+        .card-head {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        .badge-coral {
+            background: rgba(255, 126, 95, 0.10);
+            color: var(--coral);
+        }
+
+        .muted {
+            color: rgba(45, 52, 54, 0.55);
+            font-size: 0.95rem;
+        }
+
+        .question-title {
+            font-size: 1.35rem;
+            line-height: 1.45;
+            font-weight: 800;
+        }
+
+        .question-title .highlight {
+            color: var(--coral);
+        }
+
+        .option-list {
+            margin-top: 20px;
+            display: grid;
+            gap: 12px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 18px;
+            background: var(--cream);
+            border: 1px solid rgba(45, 52, 54, 0.08);
+        }
+
+        .option-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(45, 52, 54, 0.05);
+            font-size: 0.9rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .option.active {
+            background: rgba(255, 126, 95, 0.10);
+            border-color: rgba(255, 126, 95, 0.20);
+            box-shadow: var(--shadow-warm);
+        }
+
+        .option.active .option-badge {
+            background: var(--coral);
+            color: var(--white);
+        }
+
+        .side-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .timer-card {
+            padding: 24px;
+            background: var(--charcoal);
+            color: var(--white);
+        }
+
+        .score-card {
+            padding: 24px;
+        }
+
+        .label {
+            font-size: 0.8rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+        }
+
+        .label-light {
+            color: rgba(255, 255, 255, 0.55);
+        }
+
+        .label-dark {
+            color: rgba(45, 52, 54, 0.45);
+        }
+
+        .metric {
+            margin-top: 16px;
+            font-size: 2.5rem;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .metric-coral {
+            color: var(--coral);
+        }
+
+        .small-text {
+            margin-top: 12px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .small-text-light {
+            color: rgba(255, 255, 255, 0.65);
+        }
+
+        .small-text-dark {
+            color: rgba(45, 52, 54, 0.60);
+        }
+
+        .floating-chip {
+            position: absolute;
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 18px;
+            background: var(--white);
+            box-shadow: var(--shadow-soft);
+            border: 1px solid rgba(45, 52, 54, 0.05);
+            animation: float 5s ease-in-out infinite;
+        }
+
+        .floating-chip.code { top: 80px; left: -20px; color: var(--coral); }
+        .floating-chip.coffee { bottom: 64px; left: -12px; color: var(--gold); animation-delay: 0.8s; }
+        .floating-chip.terminal { top: 96px; right: -20px; color: var(--terracotta); animation-delay: 1.2s; }
+        .floating-chip.cup { right: 24px; bottom: 40px; color: var(--coral); animation-delay: 1.8s; }
+
+        .section {
+            padding: 64px 8px;
+        }
+
+        .section-head {
+            max-width: 768px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .section-kicker {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.35em;
+            text-transform: uppercase;
+            color: var(--terracotta);
+        }
+
+        .section-title {
+            margin-top: 16px;
+            font-size: clamp(2.25rem, 4vw, 3.5rem);
+            line-height: 1.1;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+        }
+
+        .section-text {
+            margin-top: 16px;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: rgba(45, 52, 54, 0.65);
+        }
+
+        .feature-grid {
+            margin-top: 56px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 24px;
+        }
+
+        .feature-card {
+            position: relative;
+            padding: 28px;
+            border-radius: 28px;
+            background: var(--white);
+            box-shadow: var(--shadow-soft);
+            border: 1px solid rgba(45, 52, 54, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-warm);
+        }
+
+        .feature-index {
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 10px 16px;
+            border-top-left-radius: 28px;
+            border-bottom-right-radius: 18px;
+            background: var(--terracotta);
+            color: var(--white);
+            font-size: 0.9rem;
+            font-weight: 800;
+        }
+        .feature-icon {
+            margin-top: 32px;
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 18px;
+            color: var(--charcoal);
+        }
+
+        .feature-icon.gold {
+            background: rgba(216, 178, 110, 0.25);
+        }
+
+        .feature-icon.coral {
+            background: rgba(255, 126, 95, 0.20);
+        }
+
+        .feature-title {
+            margin-top: 24px;
+            font-size: 1.6rem;
+            font-weight: 800;
+        }
+
+        .feature-text {
+            margin-top: 12px;
+            font-size: 1rem;
+            line-height: 1.75;
+            color: rgba(45, 52, 54, 0.65);
+        }
+
+        .about-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: center;
+            gap: 48px;
+            padding: 40px 24px;
+            border-radius: 36px;
+            background: rgba(255, 255, 255, 0.70);
+            border: 1px solid rgba(255, 255, 255, 0.70);
+            box-shadow: var(--shadow-soft);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .about-text {
+            margin-top: 20px;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: rgba(45, 52, 54, 0.68);
+        }
+
+        .pill-row {
+            margin-top: 32px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .pill {
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: var(--cream);
+            box-shadow: var(--shadow-soft);
+            color: rgba(45, 52, 54, 0.70);
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .about-visual {
+            position: relative;
+            max-width: 440px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .about-orb-left,
+        .about-orb-right {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(56px);
+            pointer-events: none;
+        }
+
+        .about-orb-left {
+            top: 48px;
+            left: 40px;
+            width: 144px;
+            height: 144px;
+            background: rgba(216, 178, 110, 0.25);
+        }
+
+        .about-orb-right {
+            top: 32px;
+            right: 32px;
+            width: 112px;
+            height: 112px;
+            background: rgba(255, 126, 95, 0.20);
+        }
+
+        .stats-shell {
+            position: relative;
+            padding: 24px;
+            border-radius: 32px;
+            background: var(--cream);
+            box-shadow: var(--shadow-soft);
+            border: 1px solid rgba(45, 52, 54, 0.05);
+        }
+
+        .stats-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 20px;
+            border-radius: 24px;
+            background: var(--white);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .stats-top-icon {
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 18px;
+            background: rgba(216, 178, 110, 0.25);
+            color: var(--charcoal);
+            flex-shrink: 0;
+        }
+
+        .stats-top .title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: rgba(45, 52, 54, 0.45);
+        }
+
+        .stats-top .value {
+            margin-top: 8px;
+            font-size: 1.7rem;
+            font-weight: 900;
+        }
+
+        .stats-grid {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .stat-box {
+            padding: 20px;
+            border-radius: 24px;
+            background: var(--white);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: rgba(45, 52, 54, 0.45);
+        }
+
+        .stat-value {
+            margin-top: 8px;
+            font-size: 2rem;
+            font-weight: 900;
+        }
+
+        .stat-value.coral {
+            color: var(--coral);
+        }
+
+        .stat-note {
+            margin-top: 8px;
+            font-size: 0.9rem;
+            color: rgba(45, 52, 54, 0.60);
+        }
+
+        .chart-box {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 24px;
+            background: var(--white);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .chart-head {
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chart-title {
+            font-weight: 700;
+        }
+
+        .bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+            min-height: 96px;
+        }
+
+        .bar {
+            flex: 1;
+            border-radius: 999px;
+        }
+
+        .bar.gold { height: 32px; background: rgba(216, 178, 110, 0.35); }
+        .bar.terra { height: 54px; background: rgba(217, 140, 108, 0.45); }
+        .bar.coral { height: 74px; background: rgba(255, 126, 95, 0.70); }
+        .bar.dark { height: 96px; background: rgba(45, 52, 54, 0.75); }
+
+        .footer {
+            margin-top: 40px;
+            padding: 32px 8px;
+            border-top: 1px solid rgba(45, 52, 54, 0.08);
+        }
+
+        .footer-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+            color: rgba(45, 52, 54, 0.60);
+            font-size: 0.95rem;
+        }
+
+        .footer-links {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .footer-links a {
+            transition: color 0.2s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--coral);
+        }
+
+        .footer-tag {
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: var(--charcoal);
+            color: var(--white);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @media (max-width: 1024px) {
+            .hero,
+            .about-box { grid-template-columns: 1fr; }
+            .hero { gap: 40px; }
+            .feature-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 900px) {
+            .nav-links { display: none; }
+            .glass-nav { padding: 14px 16px; }
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 16px 14px 32px; }
+            .hero { padding: 56px 4px; }
+            .quiz-grid,
+            .stats-grid { grid-template-columns: 1fr; }
+            .footer-inner { flex-direction: column; align-items: flex-start; }
+        }
+
+        @media (max-width: 640px) {
+            .glass-nav { flex-direction: column; align-items: stretch; }
+            .nav-actions { width: 100%; }
+            .nav-actions .btn { flex: 1; }
+            .hero-title { font-size: 2.8rem; }
+            .hero-text,
+            .section-text,
+            .about-text { font-size: 1rem; }
+            .quiz-panel,
+            .about-box,
+            .stats-shell { padding: 18px; }
+            .quiz-tag { position: static; display: inline-block; margin-bottom: 16px; }
+            .floating-chip { display: none; }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <div class="container">
+        <header class="sticky-header">
+            <nav class="glass-nav">
+                <a th:href="@{/}" href="/" class="brand">
+                    <span class="brand-icon"><i data-lucide="flame"></i></span>
+                    <span>
+                        <span class="brand-title">SecureQuiz</span>
+                        <span class="brand-subtitle">Online Question Bank</span>
+                    </span>
+                </a>
+                <ul class="nav-links">
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#services">Features</a></li>
+                    <li><a href="#about">About</a></li>
+                </ul>
+                <div class="nav-actions">
+                    <a th:href="@{/login}" href="/login" class="btn btn-light">Login</a>
+                    <a th:href="@{/register}" href="/register" class="btn btn-primary">Get Started</a>
+                </div>
+            </nav>
+        </header>
+
+        <main id="home" class="main">
+            <span class="decor-orb decor-orb-left"></span>
+            <span class="decor-orb decor-orb-right"></span>
+
+            <section class="hero">
+                <div class="hero-copy">
+                    <span class="eyebrow">
+                        <i data-lucide="sparkles" class="icon-sm"></i>
+                        Smart Java practice for modern learners
+                    </span>
+                    <h1 class="hero-title">Master Java Development Through Smart Practice</h1>
+                    <p class="hero-text">
+                        Train with a curated bank of 100+ Java questions, sharpen your accuracy with randomized practice,
+                        and build confidence through instant scoring and progress tracking.
+                    </p>
+                    <div class="hero-actions">
+                        <a th:href="@{/register}" href="/register" class="btn btn-primary">Get Started Now</a>
+                        <a th:href="@{/login}" href="/login" class="btn btn-light">Login</a>
+                    </div>
+                    <div class="hero-meta">
+                        <div class="meta-item"><i data-lucide="database" class="icon-sm" style="color: var(--gold);"></i><span>MySQL-backed progress</span></div>
+                        <div class="meta-item"><i data-lucide="file-code-2" class="icon-sm" style="color: var(--terracotta);"></i><span>Java-focused practice</span></div>
+                        <div class="meta-item"><i data-lucide="shield-check" class="icon-sm" style="color: var(--coral);"></i><span>Secure student flow</span></div>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="visual-glow visual-glow-main"></div>
+                    <div class="visual-glow visual-glow-gold"></div>
+                    <div class="visual-glow visual-glow-terra"></div>
+
+                    <div class="quiz-panel">
+                        <div class="quiz-tag">Java Quiz</div>
+                        <div class="quiz-grid">
+                            <div class="card question-card">
+                                <div class="card-head">
+                                    <span class="badge badge-coral">Code Quiz</span>
+                                    <span class="muted">Question 04/10</span>
+                                </div>
+                                <h3 class="question-title">What is the output of <span class="highlight">System.out.println(5 + 3)</span>?</h3>
+                                <div class="option-list">
+                                    <div class="option"><span class="option-badge">A</span><span>5</span></div>
+                                    <div class="option active"><span class="option-badge">B</span><span><strong>8</strong></span></div>
+                                    <div class="option"><span class="option-badge">C</span><span>3</span></div>
+                                </div>
+                            </div>
+                            <div class="side-stack">
+                                <div class="card timer-card">
+                                    <div class="label label-light">Timer</div>
+                                    <div class="metric">00:24</div>
+                                    <div class="small-text small-text-light">Stay focused and complete the challenge on time.</div>
+                                </div>
+                                <div class="card score-card">
+                                    <div class="label label-dark">Score</div>
+                                    <div class="metric metric-coral">8/10</div>
+                                    <div class="small-text small-text-dark">Instant results after submission.</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="floating-chip code"><i data-lucide="code-xml"></i></div>
+                        <div class="floating-chip coffee"><i data-lucide="coffee"></i></div>
+                        <div class="floating-chip terminal"><i data-lucide="terminal-square"></i></div>
+                        <div class="floating-chip cup"><i data-lucide="cup-soda"></i></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="services" class="section">
+                <div class="section-head">
+                    <div class="section-kicker">Features</div>
+                    <h2 class="section-title">Enhance Your Learning Journey</h2>
+                    <p class="section-text">Practice smarter with a question bank experience designed to keep learning active, measurable, and secure.</p>
+                </div>
+                <div class="feature-grid">
+                    <article class="feature-card">
+                        <span class="feature-index">1</span>
+                        <div class="feature-icon gold"><i data-lucide="shuffle"></i></div>
+                        <h3 class="feature-title">Randomized Learning</h3>
+                        <p class="feature-text">Shuffle through question sets to keep every practice session fresh, engaging, and less predictable.</p>
+                    </article>
+                    <article class="feature-card">
+                        <span class="feature-index">2</span>
+                        <div class="feature-icon coral"><i data-lucide="circle-check-big"></i></div>
+                        <h3 class="feature-title">Instant Results</h3>
+                        <p class="feature-text">Submit a test and get immediate score feedback so learners can reflect, improve, and continue with momentum.</p>
+                    </article>
+                    <article class="feature-card">
+                        <span class="feature-index">3</span>
+                        <div class="feature-icon gold"><i data-lucide="shield-check"></i></div>
+                        <h3 class="feature-title">Secure Progress</h3>
+                        <p class="feature-text">Track learner history safely with protected student access and reliable result storage behind your Spring Boot backend.</p>
+                    </article>
+                </div>
+            </section>
+
+            <section id="about" class="section">
+                <div class="about-box">
+                    <div>
+                        <div class="section-kicker">About</div>
+                        <h2 class="section-title">Trusted Java Exam Companion</h2>
+                        <p class="about-text">SecureQuiz helps students practice with confidence while your system stores test results, scores, and learning progress in a MySQL database. It is built to connect a smooth frontend experience with a reliable Java Spring Boot backend.</p>
+                        <p class="about-text">From randomized questions to secure result persistence, the platform is designed to feel simple for learners and dependable for real application use.</p>
+                        <div class="pill-row">
+                            <span class="pill">Spring Boot</span>
+                            <span class="pill">MySQL</span>
+                            <span class="pill">Secure scoring</span>
+                        </div>
+                    </div>
+                    <div class="about-visual">
+                        <div class="about-orb-left"></div>
+                        <div class="about-orb-right"></div>
+                        <div class="stats-shell">
+                            <div class="stats-top">
+                                <div>
+                                    <div class="title">Database</div>
+                                    <div class="value">MySQL</div>
+                                </div>
+                                <div class="stats-top-icon"><i data-lucide="database-zap"></i></div>
+                            </div>
+                            <div class="stats-grid">
+                                <div class="stat-box">
+                                    <div class="stat-label">Saved attempts</div>
+                                    <div class="stat-value coral">100+</div>
+                                    <div class="stat-note">Question bank activity</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-label">Score history</div>
+                                    <div class="stat-value">Live</div>
+                                    <div class="stat-note">Stored per student</div>
+                                </div>
+                            </div>
+                            <div class="chart-box">
+                                <div class="chart-head">
+                                    <div class="chart-title">Progress overview</div>
+                                    <i data-lucide="chart-column-big" style="color: var(--coral);"></i>
+                                </div>
+                                <div class="bars">
+                                    <span class="bar gold"></span>
+                                    <span class="bar terra"></span>
+                                    <span class="bar coral"></span>
+                                    <span class="bar dark"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-inner">
+                <p>© SecureQuiz. All rights reserved.</p>
+                <div class="footer-links">
+                    <a href="#home">Home</a>
+                    <a href="#services">Features</a>
+                    <a href="#about">About</a>
+                </div>
+                <span class="footer-tag">Built with Spring Boot</span>
+            </div>
+        </footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.511.0/dist/umd/lucide.min.js"></script>
+<script>
+    lucide.createIcons();
+</script>
+</body>
+</html>
+

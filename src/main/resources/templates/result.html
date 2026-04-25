@@ -8,35 +8,12 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
   <link th:href="@{/css/app.css}" rel="stylesheet"/>
 </head>
-<body class="has-bottom-nav">
+<body>
 
 <!-- Page-load bar -->
 <div class="page-load-bar"></div>
 
-<!-- Sidebar -->
-<div th:insert="~{fragments/sidebar :: sidebar('results')}"></div>
-<!-- Mobile bottom nav -->
-<div th:insert="~{fragments/bottom_nav :: bottomNav('results')}"></div>
-
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark">
-  <div class="container">
-    <button class="navbar-menu-btn me-3" type="button"
-            data-bs-toggle="offcanvas" data-bs-target="#appSidebar"
-            aria-controls="appSidebar" aria-label="Open menu">
-      <i class="bi bi-list"></i>
-    </button>
-    <a class="navbar-brand" th:href="@{/dashboard}">
-      <span class="brand-logo-block">QB</span>
-      Question Bank
-    </a>
-    <div class="ms-auto">
-      <a class="btn btn-gold-outline btn-sm" th:href="@{/dashboard}">
-        <i class="bi bi-grid me-1"></i>Dashboard
-      </a>
-    </div>
-  </div>
-</nav>
+<div th:insert="~{fragments/app_nav :: appNav('results')}"></div>
 
 <main class="container py-5">
   <div class="row justify-content-center">
@@ -137,6 +114,13 @@
                     <div class="text-muted-2" style="font-size:0.72rem;">
                       <i class="bi bi-x-circle-fill me-1" style="color:#f87171;"></i>Incorrect
                     </div>
+                  </div>
+                </div>
+                <div class="col-12">
+                  <div class="card-inner p-3 text-center">
+                    <div class="text-muted-2 small">Points earned this round</div>
+                    <div class="fw-bold metric-accent mt-2" style="font-size:1.6rem;" th:text="'+' + ${pointsAwarded}">+0</div>
+                    <div class="text-subtle mt-1" th:text="${totalPoints} + ' total points'">0 total points</div>
                   </div>
                 </div>
               </div>

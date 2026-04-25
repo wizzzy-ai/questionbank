@@ -3,195 +3,125 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Dashboard • Question Bank</title>
+  <title>Dashboard - Question Bank</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
   <link th:href="@{/css/app.css}" rel="stylesheet"/>
 </head>
-<body class="has-bottom-nav">
+<body>
 
-<!-- Page-load bar -->
 <div class="page-load-bar"></div>
 
-<!-- Sidebar -->
-<div th:insert="~{fragments/sidebar :: sidebar('dashboard')}"></div>
-<!-- Mobile bottom nav -->
-<div th:insert="~{fragments/bottom_nav :: bottomNav('dashboard')}"></div>
+<div th:insert="~{fragments/app_nav :: appNav('dashboard')}"></div>
 
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark">
-  <div class="container">
-    <!-- Hamburger -->
-    <button class="navbar-menu-btn me-3" type="button"
-            data-bs-toggle="offcanvas" data-bs-target="#appSidebar"
-            aria-controls="appSidebar" aria-label="Open menu">
-      <i class="bi bi-list"></i>
-    </button>
-
-    <a class="navbar-brand" th:href="@{/dashboard}">
-      <span class="brand-logo-block">QB</span>
-      Question Bank
-    </a>
-
-    <div class="ms-auto d-flex align-items-center gap-2">
-      <span class="pill-nav d-none d-sm-inline-flex">
-        <i class="bi bi-person-circle" style="color:var(--gold);font-size:0.9rem;"></i>
-        <span th:text="${student.fullName}">Student</span>
-      </span>
-      <form th:action="@{/logout}" method="post" class="m-0">
-        <button class="btn btn-outline-light btn-sm" type="submit">
-          <i class="bi bi-box-arrow-right me-1"></i>Logout
-        </button>
-      </form>
-    </div>
-  </div>
-</nav>
-
-<main class="container py-4 py-md-5">
-
-  <!-- Welcome Hero -->
-  <div class="mb-4">
-    <div class="d-flex align-items-center gap-3 mb-1">
-      <div style="width:48px;height:48px;border-radius:14px;background:var(--gold-dim);border:1px solid var(--border-gold);display:flex;align-items:center;justify-content:center;">
-        <i class="bi bi-mortarboard-fill" style="color:var(--gold);font-size:1.3rem;"></i>
-      </div>
-      <div>
-        <h1 class="h4 fw-bold mb-0">
-          Welcome back, <span class="text-gold" th:text="${student.fullName}">Student</span>!
+<main class="container py-4 py-md-5 content-fade">
+  <section class="dashboard-minimal">
+    <div class="dashboard-minimal__hero card-glass">
+      <div class="dashboard-minimal__copy">
+        <span class="section-label"><i class="bi bi-stars"></i>Quizora Dashboard</span>
+        <h1 class="dashboard-minimal__title">
+          Welcome back, <span class="metric-accent" th:text="${student.fullName}">Sam Josh</span>
         </h1>
-        <p class="text-muted-2 small mb-0">Ready to test your knowledge today?</p>
-      </div>
-    </div>
-  </div>
+        <p class="dashboard-minimal__subtitle">Ready for another quiz?</p>
 
-  <div class="row g-4">
+        <div class="dashboard-minimal__actions">
+          <a class="btn btn-gold btn-lg dashboard-minimal__primary start-quiz-btn"
+             th:href="@{/quiz/setup}">
+            <i class="bi bi-fire me-2"></i>Start New Quiz
+          </a>
+          <a class="btn btn-gold-outline btn-lg dashboard-minimal__secondary start-quiz-btn"
+             th:href="@{/quiz/setup}"
+             th:classappend="${#lists.isEmpty(results)} ? ' disabled' : ''"
+             th:aria-disabled="${#lists.isEmpty(results)} ? 'true' : null"
+             th:tabindex="${#lists.isEmpty(results)} ? '-1' : null">
+            Custom Practice <i class="bi bi-arrow-right ms-2"></i>
+          </a>
+        </div>
 
-    <!-- Quiz Start Card -->
-    <div class="col-12 col-lg-5">
-      <div class="card card-glass h-100">
-        <div class="card-body p-4">
-          <div class="section-label">
-            <i class="bi bi-lightning-fill me-1"></i>Start a Quiz
-          </div>
-          <p class="text-muted-2 small mb-4">
-            Answer random questions from the Question Bank and save your score automatically.
-          </p>
-          <div class="card-inner p-3 mb-4">
-            <div class="row g-3 text-center">
-              <div class="col-4">
-                <div class="text-gold fw-bold" style="font-size:1.3rem;">10+</div>
-                <div class="text-muted-2" style="font-size:0.72rem;">Questions</div>
-              </div>
-              <div class="col-4" style="border-left:1px solid var(--border-subtle);border-right:1px solid var(--border-subtle);">
-                <div class="text-gold fw-bold" style="font-size:1.3rem;">Timed</div>
-                <div class="text-muted-2" style="font-size:0.72rem;">Countdown</div>
-              </div>
-              <div class="col-4">
-                <div class="text-gold fw-bold" style="font-size:1.3rem;">Auto</div>
-                <div class="text-muted-2" style="font-size:0.72rem;">Score Saved</div>
-              </div>
-            </div>
-          </div>
-          <div class="d-grid gap-2">
-            <a class="btn btn-gold btn-lg start-quiz-btn"
-               th:href="@{/quiz/start(count=10)}"
-               data-bs-toggle="tooltip"
-               data-bs-title="Start a timed quiz with 10 random questions"
-               data-bs-placement="top"
-               data-label="Start 10 Questions">
-              <i class="bi bi-play-fill me-2"></i>Start 10 Questions
-            </a>
-            <a class="btn btn-gold-outline start-quiz-btn"
-               th:href="@{/quiz/start(count=15)}"
-               data-bs-toggle="tooltip"
-               data-bs-title="Start a timed quiz with 15 random questions"
-               data-bs-placement="top"
-               data-label="Start 15 Questions">
-              <i class="bi bi-play me-2"></i>Start 15 Questions
-            </a>
-          </div>
-          <div class="d-flex align-items-center gap-2 mt-3 pt-1" style="border-top:1px solid var(--border-subtle);">
-            <i class="bi bi-info-circle" style="color:var(--gold);font-size:0.85rem;"></i>
-            <span class="text-muted-2" style="font-size:0.78rem;">Your score is saved automatically after you submit.</span>
-          </div>
+        <div class="dashboard-minimal__micro">
+          <span class="dashboard-minimal__micro-item">
+            <i class="bi bi-fire"></i>
+            <span th:text="${currentStreak} + ' streak'">0 streak</span>
+          </span>
+          <span class="dashboard-minimal__micro-item">
+            <i class="bi bi-trophy"></i>
+            <span th:text="${#numbers.formatDecimal(lastScorePct, 0, 1)} + '% last score'">0.0% last score</span>
+          </span>
+          <span class="dashboard-minimal__micro-item">
+            <i class="bi bi-lightning-charge"></i>
+            <span th:text="${totalPoints} + ' points'">0 points</span>
+          </span>
         </div>
       </div>
     </div>
 
-    <!-- Results Card -->
-    <div class="col-12 col-lg-7" id="recentResults">
-      <div class="card card-glass h-100">
-        <div class="card-body p-4">
-          <div class="d-flex align-items-center justify-content-between mb-3">
-            <div class="section-label mb-0">
-              <i class="bi bi-bar-chart-fill me-1"></i>Recent Results
-            </div>
-            <span class="pill" th:text="${#lists.size(results)} + ' shown'">0 shown</span>
-          </div>
-
-          <div th:if="${#lists.isEmpty(results)}" class="text-center py-5">
-            <div style="font-size:2.5rem;margin-bottom:1rem;">📊</div>
-            <p class="text-muted-2 mb-1 fw-semibold">No results yet</p>
-            <p class="text-subtle small">Start a quiz to see your scores here.</p>
-          </div>
-
-          <div class="table-responsive" th:if="${!#lists.isEmpty(results)}">
-            <table class="table table-dark-custom table-hover align-middle mb-0">
-              <thead>
-                <tr>
-                  <th><i class="bi bi-calendar3 me-1"></i>Date</th>
-                  <th class="text-center">Score</th>
-                  <th>Percentage</th>
-                  <th class="text-center">Rank</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr th:each="r : ${results}">
-                  <td class="text-muted-2"
-                      th:text="${#temporals.format(r.submittedAt, 'dd MMM yyyy, HH:mm')}">Date</td>
-                  <td class="text-center">
-                    <span class="fw-semibold text-gold" th:text="${r.score}">0</span>
-                    <span class="text-muted-2">/ <span th:text="${r.totalQuestions}">0</span></span>
-                  </td>
-                  <td>
-                    <div class="pct-bar-wrap">
-                      <div class="pct-bar-track">
-                        <div class="pct-bar-fill" th:style="'width:' + ${r.percentage} + '%'"></div>
-                      </div>
-                      <span class="text-gold fw-semibold" style="font-size:0.82rem;min-width:40px;"
-                            th:text="${#numbers.formatDecimal(r.percentage, 0, 1)} + '%'">0%</span>
-                    </div>
-                  </td>
-                  <td class="text-center">
-                    <span th:if="${r.percentage >= 80}" title="Excellent">🥇</span>
-                    <span th:if="${r.percentage >= 60 and r.percentage < 80}" title="Good">🥈</span>
-                    <span th:if="${r.percentage < 60}" title="Needs Improvement">🥉</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-        </div>
+    <div class="dashboard-minimal__stats">
+      <div class="dashboard-minimal__stat card-inner">
+        <span class="dashboard-minimal__stat-label">Quizzes Taken</span>
+        <span class="dashboard-minimal__stat-value" th:text="${quizCount}">0</span>
+      </div>
+      <div class="dashboard-minimal__stat card-inner">
+        <span class="dashboard-minimal__stat-label">Best Score</span>
+        <span class="dashboard-minimal__stat-value" th:text="${#numbers.formatDecimal(bestPct, 0, 1)} + '%'">0.0%</span>
+      </div>
+      <div class="dashboard-minimal__stat card-inner">
+        <span class="dashboard-minimal__stat-label">Total Points</span>
+        <span class="dashboard-minimal__stat-value" th:text="${totalPoints}">0</span>
+      </div>
+      <div class="dashboard-minimal__stat card-inner">
+        <span class="dashboard-minimal__stat-label">Current Streak</span>
+        <span class="dashboard-minimal__stat-value" th:text="${currentStreak}">0</span>
       </div>
     </div>
 
-  </div>
+    <div class="dashboard-minimal__activity card-glass" id="recentResults">
+      <div class="dashboard-minimal__activity-head">
+        <div>
+          <h2 class="dashboard-minimal__activity-title">Recent Activity</h2>
+          <p class="dashboard-minimal__activity-copy">Your latest quiz attempts at a glance.</p>
+        </div>
+        <a class="dashboard-minimal__view-all" th:href="@{/dashboard} + '#recentResults'">
+          View All <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+
+      <div th:if="${#lists.isEmpty(results)}" class="card-inner p-5 text-center">
+        <div class="fw-bold mb-1">No activity yet</div>
+        <div class="text-muted-2">Start a new quiz to create your first result.</div>
+      </div>
+
+      <div class="table-responsive" th:if="${!#lists.isEmpty(results)}">
+        <table class="table table-dark-custom align-middle mb-0 dashboard-minimal__table">
+          <thead>
+          <tr>
+            <th>Date</th>
+            <th class="text-center">Score</th>
+            <th class="text-end">Mode</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="r, stat : ${results}" th:if="${stat.index < 5}">
+            <td class="text-muted-2"
+                th:text="${r.submittedAt != null ? #temporals.format(r.submittedAt.atZone(T(java.time.ZoneId).systemDefault()), 'dd MMM yyyy, HH:mm') : 'N/A'}">14 Apr 2026, 22:10</td>
+            <td class="text-center">
+              <span class="fw-bold" th:text="${#numbers.formatDecimal(r.percentage, 0, 1)} + '%'">80.0%</span>
+            </td>
+            <td class="text-end">
+              <span class="badge text-bg-secondary">Timed</span>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 (function () {
-  /* Tooltips */
-  document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
-    new bootstrap.Tooltip(el, { trigger: 'hover' });
-  });
-
-  /* Start-quiz button loading state */
   document.querySelectorAll('.start-quiz-btn').forEach(function (btn) {
     btn.addEventListener('click', function () {
-      this.innerHTML =
-        '<span class="gold-spinner-sm me-2"></span>Loading quiz…';
       this.classList.add('btn-loading');
     });
   });

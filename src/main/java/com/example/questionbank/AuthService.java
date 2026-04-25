@@ -43,4 +43,20 @@ public class AuthService {
 					return studentRepository.save(student);
 				});
 	}
+
+	public Optional<Student> updateProfile(Long studentId, String fullName, boolean leaderboardVisible) {
+		if (studentId == null || fullName == null || fullName.isBlank()) {
+			return Optional.empty();
+		}
+		return studentRepository.findById(studentId)
+				.map(student -> {
+					student.setFullName(fullName.trim());
+					student.setLeaderboardVisible(leaderboardVisible);
+					return studentRepository.save(student);
+				});
+	}
+
+	public Student save(Student student) {
+		return studentRepository.save(student);
+	}
 }
