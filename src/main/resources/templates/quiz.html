@@ -4,6 +4,9 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Quiz - Question Bank</title>
+  <meta name="_csrf" th:content="${_csrf.token}"/>
+  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+  <meta name="_csrf_parameter" th:content="${_csrf.parameterName}"/>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
   <link th:href="@{/css/app.css}" rel="stylesheet"/>
@@ -25,6 +28,8 @@
 <main class="quizora-page">
   <div class="quizora-shell">
     <form th:action="@{/quiz/submit}" method="post" id="quizForm" class="quizora-form">
+      <input type="hidden" name="secondsRemaining" id="secondsRemainingInput" th:value="${timeLimitSeconds}">
+      <input type="hidden" id="activeDraftId" th:value="${activeDraftId}">
       <div class="quizora-card card-glass">
         <div class="quizora-card__header">
           <div class="quizora-counter" id="questionCounter">Q1 / 10</div>
@@ -107,7 +112,8 @@
                 <label class="quizora-answer" th:each="opt : ${q.options}">
                   <input class="form-check-input quizora-answer__input" type="radio"
                          th:name="${'q_' + q.id}"
-                         th:value="${opt.key}"/>
+                         th:value="${opt.key}"
+                         th:checked="${savedAnswers[q.id + ''] == opt.key}"/>
                   <span class="quizora-answer__key" th:text="${opt.key}">A</span>
                   <span class="quizora-answer__text" th:text="${opt.text}">Option</span>
                   <span class="quizora-answer__check"><i class="bi bi-check2"></i></span>
@@ -286,6 +292,42 @@
   var reviewTrigger = document.getElementById('reviewTrigger');
   var reviewButtons = Array.from(document.querySelectorAll('[data-review-trigger]'));
   var bookmarkButtons = Array.from(document.querySelectorAll('.bookmark-btn'));
+  var draftId = document.getElementById('activeDraftId') ? document.getElementById('activeDraftId').value : '';
+
+  // CSRF token for AJAX requests
+  var csrfToken = document.querySelector('meta[name="_csrf"]') ? document.querySelector('meta[name="_csrf"]').getAttribute('content') : '';
+  var csrfHeader = document.querySelector('meta[name="_csrf_header"]') ? document.querySelector('meta[name="_csrf_header"]').getAttribute('content') : 'X-CSRF-TOKEN';
+
+  function serializeAnswers() {
+    return slides.map(function (slide) {
+      var checked = slide.querySelector('input:checked');
+      if (!checked) {
+        return null;
+      }
+      return slide.dataset.questionId + ':' + checked.value;
+    }).filter(Boolean).join(',');
+  }
+
+  function saveDraft() {
+    if (!draftId || quizSubmitted) {
+      return;
+    }
+
+    fetch('/quiz/draft', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-TOKEN': csrfToken
+      },
+      body: 'draftId=' + encodeURIComponent(draftId)
+        + '&secondsRemaining=' + encodeURIComponent(timeLeft)
+        + '&answersJson=' + encodeURIComponent(serializeAnswers())
+    }).catch(function () {
+      return null;
+    });
+  }
 
   function currentSlide() {
     return slides[currentQ];
@@ -368,6 +410,7 @@
         markAnsweredState(slide);
         updateNavGrid();
         updateControls();
+        saveDraft();
 
         if (AUTO_ADVANCE_ON_SELECT && currentQ < totalQ - 1) {
           window.setTimeout(function () {
@@ -502,7 +545,7 @@
     }, 200);
   });
 
-  var timeLeft = totalQ * 60;
+  var timeLeft = [[${timeLimitSeconds}]];
   var timesUpShown = false;
 
   function syncTimerDisplay(text) {
@@ -518,6 +561,7 @@
     var display = m + ':' + s;
 
     syncTimerDisplay(display);
+    document.getElementById('secondsRemainingInput').value = timeLeft;
 
     timerEl.classList.remove('warning', 'amber');
     if (timeLeft <= 60) {
@@ -534,6 +578,10 @@
     }
 
     timeLeft--;
+
+    if (timeLeft % 10 === 0) {
+      saveDraft();
+    }
   }
 
   function triggerTimesUp() {
@@ -571,6 +619,11 @@
     setTimeout(function () {
       skel.style.display = 'none';
       document.getElementById('questionsArea').style.display = 'block';
+      slides.forEach(function (slide, index) {
+        if (slide.querySelector('input:checked')) {
+          answered.add(index);
+        }
+      });
       showQuestion(0);
       slides.forEach(markAnsweredState);
     }, 250);
@@ -597,7 +650,8 @@
         credentials: 'same-origin',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-          'X-Requested-With': 'XMLHttpRequest'
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': csrfToken
         },
         body: 'questionId=' + encodeURIComponent(questionId)
       }).then(function (response) {

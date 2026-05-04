@@ -5,11 +5,15 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
+
+import java.time.Instant;
 
 @Entity
 @Table(name = "questions")
@@ -37,8 +41,12 @@ public class Question {
 	    @Column(nullable = false, length = 1)
 	    private String correctOption;
 
-		    @Column(nullable = false, length = 80)
-		    private String category = "Java";
+		    @Column(name = "category", nullable = false, length = 80)
+		    private String categoryText = "General";
+
+			@ManyToOne
+			@JoinColumn(name = "category_id")
+			private Category categoryEntity;
 
 			@Column(length = 64)
 			private String fingerprint;
@@ -52,6 +60,13 @@ public class Question {
 			@Enumerated(EnumType.STRING)
 			@Column(name = "difficulty_band", length = 10)
 			private QuestionDifficultyBand difficultyBand = QuestionDifficultyBand.MEDIUM;
+
+			@Enumerated(EnumType.STRING)
+			@Column(nullable = false, length = 20)
+			private QuestionStatus status = QuestionStatus.ACTIVE;
+
+			@Column(name = "created_at", nullable = false)
+			private Instant createdAt;
 
 		    public Question() {}
 
@@ -70,7 +85,7 @@ public class Question {
 	        this.optionC = optionC;
 	        this.optionD = optionD;
 	        this.correctOption = correctOption;
-	        this.category = (category == null || category.isBlank()) ? "Java" : category;
+	        this.categoryText = (category == null || category.isBlank()) ? "General" : category.trim();
 	    }
 
 	    public Long getId() {
@@ -130,12 +145,24 @@ public class Question {
 	    }
 
 	    public String getCategory() {
-	        return category;
+	        if (categoryEntity != null && categoryEntity.getName() != null && !categoryEntity.getName().isBlank()) {
+	        	return categoryEntity.getName();
+	        }
+	        return categoryText == null || categoryText.isBlank() ? "General" : categoryText;
 	    }
 
 		    public void setCategory(String category) {
-		        this.category = (category == null || category.isBlank()) ? "Java" : category;
+		        this.categoryText = (category == null || category.isBlank()) ? "General" : category.trim();
 		    }
+
+			public Category getCategoryEntity() {
+				return categoryEntity;
+			}
+
+			public void setCategoryEntity(Category categoryEntity) {
+				this.categoryEntity = categoryEntity;
+				this.categoryText = categoryEntity == null ? getCategory() : categoryEntity.getName();
+			}
 
 			public String getFingerprint() {
 				return fingerprint;
@@ -169,6 +196,22 @@ public class Question {
 				this.difficultyBand = difficultyBand == null ? QuestionDifficultyBand.MEDIUM : difficultyBand;
 			}
 
+			public QuestionStatus getStatus() {
+				return status == null ? QuestionStatus.ACTIVE : status;
+			}
+
+			public void setStatus(QuestionStatus status) {
+				this.status = status == null ? QuestionStatus.ACTIVE : status;
+			}
+
+			public Instant getCreatedAt() {
+				return createdAt;
+			}
+
+			public void setCreatedAt(Instant createdAt) {
+				this.createdAt = createdAt;
+			}
+
 			public void recordAttempt(boolean wasCorrect) {
 				int attempts = getAttemptsCount() + 1;
 				int correct = getCorrectCount() + (wasCorrect ? 1 : 0);
@@ -182,6 +225,15 @@ public class Question {
 			@PrePersist
 			@PreUpdate
 			void ensureFingerprint() {
+				if (createdAt == null) {
+					createdAt = Instant.now();
+				}
+				if (categoryEntity != null && categoryEntity.getName() != null && !categoryEntity.getName().isBlank()) {
+					categoryText = categoryEntity.getName();
+				}
+				if (categoryText == null || categoryText.isBlank()) {
+					categoryText = "General";
+				}
 				if (fingerprint == null || fingerprint.isBlank()) {
 					fingerprint = QuestionFingerprint.compute(this);
 				}

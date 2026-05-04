@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title th:text="${pageTitle + ' | Quizora Admin'}">Question Form | Quizora Admin</title>
+  <meta name="_csrf" th:content="${_csrf.token}"/>
+  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+  <meta name="_csrf_parameter" th:content="${_csrf.parameterName}"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+  <link rel="stylesheet" th:href="@{/css/admin.css}"/>
+</head>
+<body class="admin-body">
+<div class="admin-shell">
+  <div th:replace="~{fragments/admin_nav :: adminNav(${activeAdminPage}, ${student}, ${adminNotifications})}"></div>
+
+  <main class="admin-page">
+    <section class="admin-panel">
+      <div class="admin-breadcrumb">
+        <a th:href="@{/admin}">Dashboard</a>
+        <i class="bi bi-chevron-right"></i>
+        <a th:href="@{/admin/questions}">Questions</a>
+        <i class="bi bi-chevron-right"></i>
+        <span th:text="${pageTitle}">Create Question</span>
+      </div>
+
+      <div class="admin-header">
+        <div>
+          <span class="admin-header__eyebrow"><i class="bi bi-ui-checks-grid"></i>Question Editor</span>
+          <h1 th:text="${pageTitle}">Create Question</h1>
+          <p th:text="${readOnly} ? 'Inspect question details without editing.' : 'Manage question content, answer options, and publishing state.'">Manage question content, answer options, and publishing state.</p>
+        </div>
+      </div>
+
+      <section class="admin-settings-section">
+        <form th:action="@{/admin/questions/save}" th:object="${questionForm}" method="post">
+          <input type="hidden" th:field="*{id}">
+
+          <div class="admin-field">
+            <label for="questionText">Question</label>
+            <textarea class="admin-textarea" id="questionText" rows="4" th:field="*{questionText}" th:readonly="${readOnly}"></textarea>
+          </div>
+
+          <div class="admin-form-grid" style="margin-top:16px">
+            <div class="admin-field"><label>Option A</label><input class="admin-input" th:field="*{optionA}" th:readonly="${readOnly}"></div>
+            <div class="admin-field"><label>Option B</label><input class="admin-input" th:field="*{optionB}" th:readonly="${readOnly}"></div>
+            <div class="admin-field"><label>Option C</label><input class="admin-input" th:field="*{optionC}" th:readonly="${readOnly}"></div>
+            <div class="admin-field"><label>Option D</label><input class="admin-input" th:field="*{optionD}" th:readonly="${readOnly}"></div>
+          </div>
+
+          <div class="admin-form-grid" style="margin-top:16px">
+            <div class="admin-field">
+              <label>Correct Option</label>
+              <select class="admin-select" th:field="*{correctOption}" th:disabled="${readOnly}">
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+              </select>
+            </div>
+            <div class="admin-field">
+              <label>Category</label>
+              <select class="admin-select" th:field="*{categoryId}" th:disabled="${readOnly}">
+                <option th:each="category : ${categoryOptions}" th:value="${category.id}" th:text="${category.name}">General</option>
+              </select>
+            </div>
+            <div class="admin-field">
+              <label>Difficulty</label>
+              <select class="admin-select" th:field="*{difficultyBand}" th:disabled="${readOnly}">
+                <option th:each="difficulty : ${difficultyOptions}" th:value="${difficulty}" th:text="${difficulty}">MEDIUM</option>
+              </select>
+            </div>
+            <div class="admin-field">
+              <label>Status</label>
+              <select class="admin-select" th:field="*{status}" th:disabled="${readOnly}">
+                <option th:each="status : ${statusOptions}" th:value="${status}" th:text="${status}">ACTIVE</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="admin-hero-actions" style="margin-top:22px">
+            <button class="admin-button admin-button--primary" type="submit" th:if="${!readOnly}">Save Question</button>
+            <a class="admin-button admin-button--ghost" th:if="${!readOnly}" th:href="@{/admin/categories/new}">Add Category</a>
+            <a class="admin-button admin-button--ghost" th:href="@{/admin/questions}">Back to Questions</a>
+          </div>
+        </form>
+      </section>
+    </section>
+  </main>
+</div>
+<script th:src="@{/js/admin.js}"></script>
+</body>
+</html>

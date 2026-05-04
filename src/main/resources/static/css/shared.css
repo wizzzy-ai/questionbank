@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --cream-50: #fff9f5;
+  --cream-100: #fdf2e8;
+  --beige-200: #f3e5d8;
+  --sand-300: #ecd4bf;
+  --coral-500: #ff7e5f;
+  --coral-400: #ff9475;
+  --peach-400: #feb47b;
+  --slate-900: #2d3436;
+  --slate-700: #5b6468;
+  --slate-500: #8a9397;
+  --slate-300: #cfd4d7;
+  --gold: #ff7e5f;
+  --gold-light: #feb47b;
+  --gold-dark: #ff9475;
+  --gold-dim: rgba(255, 126, 95, 0.12);
+  --gold-dim-2: rgba(255, 126, 95, 0.08);
+  --gold-dim-3: rgba(255, 126, 95, 0.04);
+  --border-gold: rgba(255, 126, 95, 0.18);
+  --border-gold-2: rgba(255, 126, 95, 0.12);
+  --border-subtle: rgba(212, 205, 199, 0.42);
+  --white: #ffffff;
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-strong: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  --inner-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.85), inset 0 -1px 3px rgba(140, 120, 100, 0.08);
+  --coral-gradient: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%);
+  --soft-gradient: radial-gradient(circle at top left, rgba(255, 126, 95, 0.16), transparent 28%),
+    radial-gradient(circle at top right, rgba(254, 180, 123, 0.2), transparent 30%),
+    linear-gradient(180deg, #fff9f5 0%, #f7ede4 54%, #f3e5d8 100%);
+  --radius-xs: 12px;
+  --radius-sm: 16px;
+  --radius: 20px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-pill: 999px;
+  --transition: all 0.24s ease;
+  --bottom-nav-height: 72px;
+  --bs-primary: #ff7e5f;
+  --bs-primary-rgb: 255, 126, 95;
+  --bs-body-bg: #fff9f5;
+  --bs-body-color: #2d3436;
+  --bs-border-radius: 20px;
+  --bs-border-radius-lg: 24px;
+  --bs-font-sans-serif: 'Manrope', system-ui, sans-serif;
+  --bs-body-font-family: 'Manrope', system-ui, sans-serif;
+  --bs-link-color: #ff7e5f;
+  --bs-link-hover-color: #ff9475;
+}

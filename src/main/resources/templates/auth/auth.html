@@ -71,9 +71,11 @@
             </header>
 
             <div class="auth-alert" th:if="${error}" th:text="${error}"></div>
+            <div class="auth-alert auth-alert--info" th:if="${info}" th:text="${info}"></div>
             <div class="auth-alert" th:if="${#fields.hasGlobalErrors() and activeMode == 'login'}" th:each="e : ${#fields.globalErrors()}" th:text="${e}"></div>
 
             <form class="auth-form__body" th:action="@{/login}" th:object="${loginForm}" method="post" novalidate>
+              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
               <div class="field-group">
                 <label for="login-email">Email</label>
                 <div class="field-shell">
@@ -105,7 +107,7 @@
                   <span class="check-row__box"></span>
                   <span>Remember me</span>
                 </label>
-                <a href="#" class="text-link">Forgot password?</a>
+                <a th:href="@{/forgot-password}" href="/forgot-password" class="text-link">Forgot password?</a>
               </div>
 
               <button class="primary-button" type="submit">Sign In</button>
@@ -135,6 +137,7 @@
             <div class="auth-alert" th:if="${#fields.hasGlobalErrors() and activeMode == 'register'}" th:each="e : ${#fields.globalErrors()}" th:text="${e}"></div>
 
             <form class="auth-form__body" th:action="@{/register}" th:object="${registerForm}" method="post" novalidate data-register-form>
+              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
               <input type="hidden" th:field="*{fullName}" id="register-fullName">
 
               <div class="field-grid">
@@ -205,7 +208,7 @@
               <label class="check-row check-row--wide">
                 <input type="checkbox" required>
                 <span class="check-row__box"></span>
-                <span>I agree to the <a href="#" class="text-link">Terms</a> and <a href="#" class="text-link">Privacy Policy</a>.</span>
+                <span>I agree to the <a th:href="@{/terms}" href="/terms" class="text-link">Terms</a> and <a th:href="@{/privacy}" href="/privacy" class="text-link">Privacy Policy</a>.</span>
               </label>
 
               <button class="primary-button" type="submit">Create My Account</button>

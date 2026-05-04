@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Notifications | Quizora Admin</title>
+  <meta name="_csrf" th:content="${_csrf.token}"/>
+  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+  <meta name="_csrf_parameter" th:content="${_csrf.parameterName}"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+  <link rel="stylesheet" th:href="@{/css/admin.css}"/>
+</head>
+<body class="admin-body">
+<div class="admin-shell">
+  <div th:replace="~{fragments/admin_nav :: adminNav(${activeAdminPage}, ${student}, ${adminNotifications})}"></div>
+
+  <main class="admin-page">
+    <section class="admin-panel notifications-page">
+      <div class="admin-header">
+        <div>
+          <span class="admin-header__eyebrow">Activity Center</span>
+          <h1>Notifications</h1>
+          <p>Track admin activity, reported issues, and quiz events in one focused feed.</p>
+        </div>
+      </div>
+
+      <section class="admin-card notifications-toolbar">
+        <div class="notifications-tabs" data-notification-tabs>
+          <button class="notifications-tab is-active" type="button" data-notification-tab="all">All</button>
+          <button class="notifications-tab" type="button" data-notification-tab="unread">Unread <span data-unread-count-badge>0</span></button>
+          <button class="notifications-tab" type="button" data-notification-tab="read">Read</button>
+          <button class="notifications-tab" type="button" data-notification-tab="system">System</button>
+          <button class="notifications-tab" type="button" data-notification-tab="quiz">Quizzes</button>
+          <button class="notifications-tab" type="button" data-notification-tab="user">Users</button>
+        </div>
+
+        <div class="notifications-search">
+          <i class="bi bi-search"></i>
+          <input class="admin-input" id="notificationSearch" type="search" placeholder="Search notifications" data-notification-search>
+        </div>
+
+        <div class="admin-field">
+          <label for="notificationDate">Filter by date</label>
+          <input class="admin-input" id="notificationDate" type="date" data-notification-date>
+        </div>
+      </section>
+
+      <section class="notifications-bulk-actions">
+        <div class="bulk-actions__left">
+          <label class="checkbox-wrapper">
+            <input class="admin-checkbox" type="checkbox" data-notification-select-all>
+            <span class="checkbox-label">Select all visible</span>
+          </label>
+          <span class="selected-count" data-notification-selected-count>0 selected</span>
+        </div>
+        <div class="notifications-bulk-actions__buttons">
+          <button class="admin-button admin-button--ghost" type="button" data-notification-bulk-read>Mark selected as read</button>
+          <button class="admin-button admin-button--danger" type="button" data-notification-bulk-delete>Delete selected</button>
+          <button class="admin-danger-link" type="button" data-notification-delete-read>Delete all read</button>
+        </div>
+      </section>
+
+      <section class="notifications-feed" data-notifications-page-list>
+        <article class="notifications-record"
+                 th:each="note : ${adminNotifications}"
+                 th:attr="data-notification-id=${note.id},
+                          data-notification-type=${note.type},
+                          data-notification-title=${note.title},
+                          data-notification-description=${note.message},
+                          data-notification-href=${note.href},
+                          data-notification-action=${note.actionLabel},
+                          data-notification-created=${note.createdAt},
+                          data-notification-relative=${note.relativeTime},
+                          data-notification-unread=${note.isNew}"
+                 th:classappend="${note.isNew} ? ' unread' : ' is-read'">
+          <label class="checkbox-wrapper">
+            <input class="admin-checkbox" type="checkbox" data-notification-select th:attr="value=${note.id}">
+          </label>
+          <div class="notification-item__icon" th:attr="data-type=${note.type}">
+            <i class="bi" th:classappend="${
+                note.type == 'user' ? ' bi-person-plus' :
+                (note.type == 'report' ? ' bi-flag' :
+                (note.type == 'quiz' ? ' bi-clipboard-check' : ' bi-cpu'))
+              }"></i>
+          </div>
+
+          <div class="notifications-record__content">
+            <div class="notifications-record__title-row">
+              <h2 class="notifications-record__title" th:text="${note.title}">New user registered</h2>
+              <span class="notifications-record__status" th:text="${note.isNew ? 'Unread' : 'Read'}">Unread</span>
+            </div>
+            <div class="notifications-record__description" th:text="${note.message}">A new user has joined the platform.</div>
+            <div class="notifications-record__meta">
+              <span th:text="${#strings.capitalize(note.type)}">User</span>
+              <span th:text="${note.relativeTime}">2m ago</span>
+              <span th:text="${note.createdAt != null ? #temporals.format(note.createdAt.atZone(T(java.time.ZoneId).systemDefault()), 'dd MMM yyyy, HH:mm') : 'Just now'}">26 Apr 2026, 14:40</span>
+            </div>
+          </div>
+
+            <div class="notifications-record__actions">
+            <a class="admin-button admin-button--primary"
+               th:href="${note.href}"
+               th:text="${note.actionLabel}">View</a>
+            <button class="admin-button admin-button--ghost" type="button" data-notification-mark>Mark as read</button>
+          </div>
+        </article>
+      </section>
+
+      <div class="notifications-empty" data-notifications-empty hidden>
+        All caught up!
+      </div>
+
+      <div class="admin-hero-actions" style="margin-top:18px;justify-content:space-between;align-items:center">
+        <span class="admin-table-note">Swipe left to delete on mobile and right to mark notifications as read.</span>
+        <button class="admin-button admin-button--danger" type="button" data-notification-delete-older>Delete all older than 30 days</button>
+      </div>
+    </section>
+  </main>
+</div>
+<script th:src="@{/js/admin.js}"></script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>User Detail | Quizora Admin</title>
+  <meta name="_csrf" th:content="${_csrf.token}"/>
+  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+  <meta name="_csrf_parameter" th:content="${_csrf.parameterName}"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+  <link rel="stylesheet" th:href="@{/css/admin.css}"/>
+</head>
+<body class="admin-body">
+<div class="admin-shell">
+  <div th:replace="~{fragments/admin_nav :: adminNav(${activeAdminPage}, ${student}, ${adminNotifications})}"></div>
+  <main class="admin-page">
+    <section class="admin-panel">
+      <div class="admin-breadcrumb">
+        <a th:href="@{/admin}">Dashboard</a>
+        <i class="bi bi-chevron-right"></i>
+        <a th:href="@{/admin/users}">Users</a>
+        <i class="bi bi-chevron-right"></i>
+        <span th:text="${userRecord.fullName}">User</span>
+      </div>
+
+      <div th:if="${message != null && !#strings.isEmpty(message)}" class="admin-alert admin-alert--success" th:text="${message}">Update complete.</div>
+      <div th:if="${error != null && !#strings.isEmpty(error)}" class="admin-alert admin-alert--danger" th:text="${error}">Something went wrong.</div>
+
+      <section class="admin-user-grid">
+        <article class="admin-user-hero">
+          <h2 th:text="${userRecord.fullName}">Ada Lovelace</h2>
+          <p class="admin-user-summary" th:text="${userRecord.email}">ada@example.com</p>
+          <div class="admin-hero-actions" style="margin-top:18px">
+            <span class="admin-pill"
+                  th:classappend="${userRoleClass}"
+                  th:text="${userRoleLabel}">User</span>
+            <span class="admin-pill admin-pill--draft" th:if="${userRecord.bootstrapAdmin}">Bootstrap Admin</span>
+            <span class="admin-pill"
+                  th:classappend="${userStatusClass}"
+                  th:text="${userStatusLabel}">Active</span>
+          </div>
+          <div class="admin-hero-actions" style="margin-top:12px">
+            <form class="admin-inline-form" th:if="${!userRecord.deleted}" th:action="@{/admin/users/{id}/soft-delete(id=${userRecord.id})}" method="post">
+              <button class="admin-button admin-button--danger" type="submit" th:disabled="${userRecord.admin || userRecord.bootstrapAdmin}">
+                Soft Delete User
+              </button>
+            </form>
+            <form class="admin-inline-form" th:if="${userRecord.deleted}" th:action="@{/admin/users/{id}/restore(id=${userRecord.id})}" method="post">
+              <button class="admin-button admin-button--ghost" type="submit" th:disabled="${userRecord.bootstrapAdmin}">
+                Restore User
+              </button>
+            </form>
+          </div>
+        </article>
+
+        <article class="admin-settings-section">
+          <h3>Account Snapshot</h3>
+          <div class="admin-field"><label>Role</label><input class="admin-input" th:value="${userRecord.superAdmin ? 'Super Admin' : (userRecord.admin ? 'Admin' : 'User')}" readonly></div>
+          <div class="admin-field"><label>Joined</label><input class="admin-input" th:value="${userRecord.createdAt != null ? #temporals.format(userRecord.createdAt.atZone(T(java.time.ZoneId).systemDefault()), 'dd MMM yyyy, HH:mm') : 'N/A'}" readonly></div>
+          <div class="admin-field" style="margin-top:14px"><label>Email Verified</label><input class="admin-input" th:value="${userRecord.emailVerified ? 'Yes' : 'No'}" readonly></div>
+          <div class="admin-field" style="margin-top:14px"><label>Total Points</label><input class="admin-input" th:value="${userRecord.totalPoints}" readonly></div>
+          <div class="admin-field" style="margin-top:14px"><label>Deleted At</label><input class="admin-input" th:value="${userRecord.deletedAt != null ? #temporals.format(userRecord.deletedAt.atZone(T(java.time.ZoneId).systemDefault()), 'dd MMM yyyy, HH:mm') : 'Not deleted'}" readonly></div>
+        </article>
+      </section>
+
+      <section class="admin-card" style="margin-top:18px" th:if="${isSuperAdmin}">
+        <div class="admin-card__head">
+          <div>
+            <h3>Role Management</h3>
+            <p>Only the current super admin can change admin roles or transfer ownership.</p>
+          </div>
+        </div>
+        <div class="admin-hero-actions" style="margin-top:12px; flex-wrap:wrap">
+          <form class="admin-inline-form" th:if="${!userRecord.admin && !userRecord.deleted && !userRecord.banned && !userRecord.bootstrapAdmin}" th:action="@{/admin/users/{id}/promote-admin(id=${userRecord.id})}" method="post">
+            <button class="admin-button admin-button--primary" type="submit">Promote To Admin</button>
+          </form>
+          <form class="admin-inline-form" th:if="${userRecord.role.name() == 'ADMIN'}" th:action="@{/admin/users/{id}/demote-admin(id=${userRecord.id})}" method="post">
+            <button class="admin-button admin-button--ghost" type="submit">Demote To User</button>
+          </form>
+          <form class="admin-inline-form" th:if="${!userRecord.superAdmin && !userRecord.deleted && !userRecord.banned && !userRecord.bootstrapAdmin}" th:action="@{/admin/users/{id}/transfer-super-admin(id=${userRecord.id})}" method="post">
+            <button class="admin-button admin-button--danger" type="submit">Transfer Super Admin</button>
+          </form>
+          <form class="admin-inline-form" th:if="${userRecord.bootstrapAdmin && !userRecord.superAdmin}" th:action="@{/admin/users/{id}/delete-bootstrap-admin(id=${userRecord.id})}" method="post">
+            <button class="admin-button admin-button--danger" type="submit">Delete Bootstrap Admin</button>
+          </form>
+        </div>
+        <p class="admin-table-note" style="margin-top:14px">
+          Transferring super admin will demote your current account to a normal user and sign you out immediately.
+        </p>
+      </section>
+
+      <section class="admin-card" style="margin-top:18px">
+        <div class="admin-card__head">
+          <div>
+            <h3>Recent Quiz Results</h3>
+            <p>Latest outcomes for this user.</p>
+          </div>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+            <tr>
+              <th>Submitted</th>
+              <th>Mode</th>
+              <th>Score</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="result : ${recentResults}">
+              <td class="admin-table-note" th:text="${result.submittedAt != null ? #temporals.format(result.submittedAt.atZone(T(java.time.ZoneId).systemDefault()), 'dd MMM yyyy, HH:mm') : 'N/A'}">25 Apr 2026</td>
+              <td th:text="${result.mode}">ADAPTIVE</td>
+              <td th:text="${#numbers.formatDecimal(result.percentage, 0, 1) + '%'}">80%</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(recentResults)}">
+              <td colspan="3"><div class="admin-empty">No recent quiz results for this user.</div></td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </main>
+</div>
+<script th:src="@{/js/admin.js}"></script>
+</body>
+</html>

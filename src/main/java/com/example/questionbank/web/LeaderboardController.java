@@ -40,7 +40,7 @@ public class LeaderboardController {
 			model.addAttribute("student", viewer);
 		}
 
-		model.addAttribute("entries", studentRepository.findTop25ByLeaderboardVisibleTrueOrderByTotalPointsDescIdAsc());
+		model.addAttribute("entries", studentRepository.findTop25ByLeaderboardVisibleTrueAndAdminFalseAndDeletedFalseOrderByTotalPointsDescIdAsc());
 		model.addAttribute("viewerId", viewer != null ? viewer.getId() : null);
 		return "leaderboard";
 	}
@@ -54,6 +54,9 @@ public class LeaderboardController {
 
 		Student target = studentRepository.findById(id).orElse(null);
 		if (target == null) {
+			return "redirect:/leaderboard";
+		}
+		if (target.isAdmin() || target.isDeleted()) {
 			return "redirect:/leaderboard";
 		}
 
@@ -83,7 +86,7 @@ public class LeaderboardController {
 		model.addAttribute("accuracyPct", accuracyPct);
 		model.addAttribute("strongestCategory", strongestCategory);
 		model.addAttribute("recentResults", quizResultRepository.findTop5ByStudentIdOrderByPercentageDescSubmittedAtAsc(target.getId()));
-		model.addAttribute("leaderboardRank", target.isLeaderboardVisible()
+		model.addAttribute("leaderboardRank", target.isLeaderboardVisible() && !target.isAdmin()
 				? studentRepository.countLeaderboardEntriesAhead(target.getTotalPoints(), target.getId()) + 1
 				: null);
 

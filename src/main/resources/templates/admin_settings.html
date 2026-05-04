@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Settings | Quizora Admin</title>
+  <meta name="_csrf" th:content="${_csrf.token}"/>
+  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+  <meta name="_csrf_parameter" th:content="${_csrf.parameterName}"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+  <link rel="stylesheet" th:href="@{/css/admin.css}"/>
+</head>
+<body class="admin-body">
+<div class="admin-shell">
+  <div th:replace="~{fragments/admin_nav :: adminNav(${activeAdminPage}, ${student}, ${adminNotifications})}"></div>
+  <main class="admin-page">
+    <section class="admin-panel">
+      <div class="admin-header">
+        <div>
+          <span class="admin-header__eyebrow">Configuration</span>
+          <h1>Settings</h1>
+          <p>Operational defaults, retention preferences, and account maintenance for the admin workspace.</p>
+        </div>
+      </div>
+
+      <section class="admin-settings-grid">
+        <div class="admin-settings-column">
+          <article class="admin-settings-section">
+            <h3>General Settings</h3>
+            <div class="admin-field">
+              <label>Site Name</label>
+              <input class="admin-input" th:value="${siteName}">
+            </div>
+            <div class="admin-field" style="margin-top:14px">
+              <label>Logo Upload</label>
+              <input class="admin-input" type="file">
+            </div>
+            <div class="settings-preview">
+              <span class="settings-preview__logo">Q</span>
+              <span class="admin-table-note">Preview your uploaded logo before applying workspace changes.</span>
+            </div>
+          </article>
+
+          <article class="admin-settings-section">
+            <h3>Account Settings</h3>
+            <div class="admin-field">
+              <label>Update Email</label>
+              <input class="admin-input" type="email" th:value="${student != null ? student.email : ''}">
+            </div>
+            <div class="admin-field" style="margin-top:14px">
+              <label>Change Password</label>
+              <input class="admin-input" type="password" placeholder="••••••••">
+            </div>
+          </article>
+        </div>
+
+        <div class="admin-settings-column">
+          <article class="admin-settings-section">
+            <h3>Quiz Settings</h3>
+            <div class="admin-field">
+              <label>Default Time Per Quiz (minutes)</label>
+              <input class="admin-input" type="number" th:value="${defaultTime}">
+            </div>
+            <div class="admin-field" style="margin-top:14px">
+              <label>Max Questions Per Quiz</label>
+              <input class="admin-input" type="number" th:value="${maxQuestions}">
+            </div>
+          </article>
+
+          <article class="admin-settings-section">
+            <h3>Data Management</h3>
+            <div class="settings-data-actions">
+              <div class="admin-field">
+                <label>Activity Feed Retention</label>
+                <select class="admin-select">
+                  <option>7 days</option>
+                  <option selected>30 days</option>
+                  <option>90 days</option>
+                  <option>1 year</option>
+                </select>
+              </div>
+              <div class="admin-field">
+                <label>Notification Auto-Delete</label>
+                <select class="admin-select">
+                  <option>7 days</option>
+                  <option selected>30 days</option>
+                  <option>90 days</option>
+                  <option>Never</option>
+                </select>
+              </div>
+              <button class="admin-button admin-button--ghost" type="button">Archive questions unused for 6 months</button>
+              <button class="admin-button admin-button--outline" type="button">Export all data as JSON/CSV</button>
+            </div>
+          </article>
+
+          <article class="admin-settings-section">
+            <h3>Actions</h3>
+            <div class="settings-actions">
+              <p class="admin-table-note">These controls are ready for save, reset, and local cache cleanup actions.</p>
+              <div class="settings-actions__buttons">
+                <button class="admin-button admin-button--primary" type="button">Save Changes</button>
+                <button class="admin-button admin-button--ghost" type="button">Reset</button>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+    </section>
+  </main>
+</div>
+<script th:src="@{/js/admin.js}"></script>
+</body>
+</html>

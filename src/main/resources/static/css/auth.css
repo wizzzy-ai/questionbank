@@ -714,6 +714,12 @@ body[data-active-mode="register"] .auth-toggle__indicator {
   line-height: 1.4;
 }
 
+.auth-alert--info {
+  background: #eef7ff;
+  border-color: rgba(80, 131, 200, 0.18);
+  color: #3c6188;
+}
+
 @keyframes floatY {
   0%,
   100% {

@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Reports | Quizora Admin</title>
+  <meta name="_csrf" th:content="${_csrf.token}"/>
+  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+  <meta name="_csrf_parameter" th:content="${_csrf.parameterName}"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+  <link rel="stylesheet" th:href="@{/css/admin.css}"/>
+</head>
+<body class="admin-body">
+<div class="admin-shell">
+  <div th:replace="~{fragments/admin_nav :: adminNav(${activeAdminPage}, ${student}, ${adminNotifications})}"></div>
+
+  <main class="admin-page">
+    <section class="admin-panel reports-page" data-reports-page>
+      <header class="reports-header admin-header">
+        <div>
+          <span class="admin-header__eyebrow">Decision Center</span>
+          <h1>Reports</h1>
+          <p>Platform activity and performance insights</p>
+        </div>
+
+        <div class="reports-header__actions">
+          <div class="admin-field">
+            <label for="reportRange">Date range</label>
+            <select class="admin-select" id="reportRange" data-report-range>
+              <option value="7">Last 7 days</option>
+              <option value="30" selected>Last 30 days</option>
+              <option value="90">Last 90 days</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+
+          <div class="reports-header__custom" data-report-custom-range hidden>
+            <div class="admin-field">
+              <label for="reportStart">Start</label>
+              <input class="admin-input" id="reportStart" type="date" data-report-start>
+            </div>
+            <div class="admin-field">
+              <label for="reportEnd">End</label>
+              <input class="admin-input" id="reportEnd" type="date" data-report-end>
+            </div>
+          </div>
+
+          <div class="admin-field">
+            <label for="reportExportFormat">Export</label>
+            <div class="reports-export">
+              <select class="admin-select" id="reportExportFormat" data-report-export-format>
+                <option value="csv">CSV</option>
+                <option value="pdf">PDF</option>
+              </select>
+              <button class="admin-button admin-button--primary" type="button" data-report-export>
+                <i class="bi bi-download"></i>
+                <span data-report-export-label>Export</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="report-retention-note">Showing data from last 90 days. Older data is archived.</div>
+
+      <section class="kpi-cards reports-kpis" data-report-summary>
+        <article class="report-kpi-card" data-metric-key="users">
+          <div class="report-kpi-card__top">
+            <span class="report-kpi-card__icon"><i class="bi bi-people"></i></span>
+            <span class="report-kpi-card__trend" data-positive="true">
+              <i class="bi bi-arrow-up-right"></i>
+              <span data-metric-trend>0%</span>
+            </span>
+          </div>
+          <div class="report-kpi-card__value" data-metric-value>0</div>
+          <div class="report-kpi-card__label">Total Users</div>
+          <div class="report-kpi-card__meta" data-metric-meta>Loading latest range</div>
+        </article>
+
+        <article class="report-kpi-card" data-metric-key="questions">
+          <div class="report-kpi-card__top">
+            <span class="report-kpi-card__icon"><i class="bi bi-patch-question"></i></span>
+            <span class="report-kpi-card__trend" data-positive="true">
+              <i class="bi bi-arrow-up-right"></i>
+              <span data-metric-trend>0%</span>
+            </span>
+          </div>
+          <div class="report-kpi-card__value" data-metric-value>0</div>
+          <div class="report-kpi-card__label">Total Questions</div>
+          <div class="report-kpi-card__meta" data-metric-meta>Loading latest range</div>
+        </article>
+
+        <article class="report-kpi-card" data-metric-key="quizzes">
+          <div class="report-kpi-card__top">
+            <span class="report-kpi-card__icon"><i class="bi bi-clipboard-check"></i></span>
+            <span class="report-kpi-card__trend" data-positive="true">
+              <i class="bi bi-arrow-up-right"></i>
+              <span data-metric-trend>0%</span>
+            </span>
+          </div>
+          <div class="report-kpi-card__value" data-metric-value>0</div>
+          <div class="report-kpi-card__label">Quizzes Completed</div>
+          <div class="report-kpi-card__meta" data-metric-meta>Loading latest range</div>
+        </article>
+
+        <article class="report-kpi-card" data-metric-key="active">
+          <div class="report-kpi-card__top">
+            <span class="report-kpi-card__icon"><i class="bi bi-lightning-charge"></i></span>
+            <span class="report-kpi-card__trend" data-positive="true">
+              <i class="bi bi-arrow-up-right"></i>
+              <span data-metric-trend>0%</span>
+            </span>
+          </div>
+          <div class="report-kpi-card__value" data-metric-value>0</div>
+          <div class="report-kpi-card__label">Active Today</div>
+          <div class="report-kpi-card__meta" data-metric-meta>Loading latest range</div>
+        </article>
+
+        <article class="report-kpi-card" data-metric-key="issues">
+          <div class="report-kpi-card__top">
+            <span class="report-kpi-card__icon"><i class="bi bi-flag"></i></span>
+            <span class="report-kpi-card__trend" data-positive="false">
+              <i class="bi bi-arrow-down-right"></i>
+              <span data-metric-trend>0%</span>
+            </span>
+          </div>
+          <div class="report-kpi-card__value" data-metric-value>0</div>
+          <div class="report-kpi-card__label">Reported Issues</div>
+          <div class="report-kpi-card__meta" data-metric-meta>Loading latest range</div>
+        </article>
+      </section>
+
+      <section class="charts-section reports-charts">
+        <article class="admin-card report-chart-card" data-report-chart-card="users">
+          <div class="admin-card__head">
+            <div>
+              <h2>User Growth</h2>
+              <p>Daily registrations over the selected range.</p>
+            </div>
+          </div>
+          <div class="report-chart-shell">
+            <canvas class="report-chart-canvas" data-report-chart-canvas="users"></canvas>
+            <div class="report-section-state" data-report-chart-state="users"></div>
+            <div class="report-chart-tooltip" data-report-chart-tooltip="users" hidden></div>
+            <div class="report-empty" data-report-chart-empty="users" hidden>
+              <p>Not enough data for this period. Try selecting a different date range.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="admin-card report-chart-card" data-report-chart-card="quizzes">
+          <div class="admin-card__head">
+            <div>
+              <h2>Quiz Completions</h2>
+              <p>Daily completion volume and engagement rhythm.</p>
+            </div>
+          </div>
+          <div class="report-chart-shell">
+            <canvas class="report-chart-canvas" data-report-chart-canvas="quizzes"></canvas>
+            <div class="report-section-state" data-report-chart-state="quizzes"></div>
+            <div class="report-chart-tooltip" data-report-chart-tooltip="quizzes" hidden></div>
+            <div class="report-empty" data-report-chart-empty="quizzes" hidden>
+              <p>Not enough data for this period. Try selecting a different date range.</p>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="activity-section reports-activity">
+        <article class="admin-card">
+          <div class="admin-card__head">
+            <div>
+              <h2>Top Categories</h2>
+              <p>Question coverage by strongest content area.</p>
+            </div>
+          </div>
+          <div class="report-category-list" data-report-categories></div>
+          <div class="report-empty" data-report-categories-empty hidden>
+            <p>Not enough data for this period. Try selecting a different date range.</p>
+          </div>
+        </article>
+
+        <article class="admin-card">
+          <div class="admin-card__head">
+            <div>
+              <h2>Recent Activity</h2>
+              <p>Fast-moving signals from users, quizzes, and content.</p>
+            </div>
+          </div>
+          <div class="report-activity-list" data-report-activity></div>
+          <div class="report-empty" data-report-activity-empty hidden>
+            <p>Not enough data for this period. Try selecting a different date range.</p>
+          </div>
+          <div class="report-activity-load-more" data-report-activity-load-more hidden>
+            <button class="admin-button admin-button--ghost" type="button" data-report-activity-more>Load More</button>
+          </div>
+        </article>
+      </section>
+
+    </section>
+  </main>
+</div>
+<script th:src="@{/js/admin.js}"></script>
+</body>
+</html>

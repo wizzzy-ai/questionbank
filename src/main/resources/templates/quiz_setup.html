@@ -27,6 +27,9 @@
         <a class="btn btn-gold btn-lg start-quiz-btn" th:href="@{/quiz/start(mode='random',count=10)}">
           <i class="bi bi-lightning-charge-fill me-2"></i>Quick Start
         </a>
+        <a class="btn btn-gold-outline btn-lg" th:if="${activeDraft != null}" th:href="@{/quiz/start(draftId=${activeDraft.id})}">
+          <i class="bi bi-arrow-repeat me-2"></i>Resume Draft
+        </a>
         <span class="pill">10 random questions</span>
       </div>
     </div>

@@ -29,6 +29,11 @@
              th:href="@{/quiz/setup}">
             <i class="bi bi-fire me-2"></i>Start New Quiz
           </a>
+          <a class="btn btn-gold-outline btn-lg dashboard-minimal__secondary"
+             th:if="${activeDraft != null}"
+             th:href="@{/quiz/start(draftId=${activeDraft.id})}">
+            Resume Quiz <i class="bi bi-arrow-repeat ms-2"></i>
+          </a>
           <a class="btn btn-gold-outline btn-lg dashboard-minimal__secondary start-quiz-btn"
              th:href="@{/quiz/setup}"
              th:classappend="${#lists.isEmpty(results)} ? ' disabled' : ''"
@@ -80,7 +85,7 @@
           <h2 class="dashboard-minimal__activity-title">Recent Activity</h2>
           <p class="dashboard-minimal__activity-copy">Your latest quiz attempts at a glance.</p>
         </div>
-        <a class="dashboard-minimal__view-all" th:href="@{/dashboard} + '#recentResults'">
+        <a class="dashboard-minimal__view-all" th:href="@{/results}">
           View All <i class="bi bi-arrow-right"></i>
         </a>
       </div>
@@ -107,7 +112,7 @@
               <span class="fw-bold" th:text="${#numbers.formatDecimal(r.percentage, 0, 1)} + '%'">80.0%</span>
             </td>
             <td class="text-end">
-              <span class="badge text-bg-secondary">Timed</span>
+              <span class="badge text-bg-secondary" th:text="${r.mode}">CUSTOM</span>
             </td>
           </tr>
           </tbody>

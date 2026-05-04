@@ -11,6 +11,8 @@ public interface QuizAnswerRepository extends JpaRepository<QuizAnswer, Long> {
 
 	long countByStudentIdAndCorrectTrue(Long studentId);
 
+	List<QuizAnswer> findByQuizResultIdOrderByIdAsc(Long quizResultId);
+
 	@Query("""
 			select a.category as category,
 			       count(a) as total,

@@ -50,7 +50,19 @@ public class BookmarksController {
 				.filter(category -> category != null && !category.isBlank())
 				.collect(Collectors.toSet())
 				.size());
+		model.addAttribute("canPracticeBookmarks", !bookmarks.isEmpty());
 		return "bookmarks";
+	}
+
+	@GetMapping("/bookmarks/practice")
+	public String practiceBookmarks(HttpSession session) {
+		Long studentId = (Long) session.getAttribute(SessionKeys.STUDENT_ID);
+		Student student = studentId == null ? null : authService.findById(studentId).orElse(null);
+		if (student == null) {
+			session.invalidate();
+			return "redirect:/login";
+		}
+		return "redirect:/quiz/bookmarks/start";
 	}
 
 	@PostMapping("/bookmarks/remove")

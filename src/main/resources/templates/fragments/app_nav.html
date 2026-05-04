@@ -19,7 +19,7 @@
          th:class="${'app-pill-nav__link' + (activePage == 'quiz' ? ' is-active' : '')}">
         Start test
       </a>
-      <a th:href="@{/dashboard} + '#recentResults'"
+      <a th:href="@{/results}"
          th:class="${'app-pill-nav__link' + (activePage == 'results' ? ' is-active' : '')}">
         Results
       </a>
@@ -34,6 +34,11 @@
       <a th:href="@{/profile}"
          th:class="${'app-pill-nav__link' + (activePage == 'profile' ? ' is-active' : '')}">
         Profile
+      </a>
+      <a th:if="${student != null and student.admin}"
+         th:href="@{/admin/questions}"
+         th:class="${'app-pill-nav__link' + (activePage == 'admin' ? ' is-active' : '')}">
+        Admin
       </a>
     </div>
 
