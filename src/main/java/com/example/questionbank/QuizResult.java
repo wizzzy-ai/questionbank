@@ -32,6 +32,21 @@ public class QuizResult {
 	@Column(nullable = false)
 	private double percentage;
 
+	@Column(nullable = false, length = 20)
+	private String mode = "ADAPTIVE";
+
+	@Column(length = 20)
+	private String difficultyBand;
+
+	@Column(length = 255)
+	private String topicSummary;
+
+	@Column(nullable = false)
+	private Integer durationSeconds = 0;
+
+	@Column(nullable = false)
+	private boolean completed = true;
+
 	@Column(nullable = false)
 	private Instant submittedAt = Instant.now();
 
@@ -43,6 +58,28 @@ public class QuizResult {
 		this.score = score;
 		this.totalQuestions = totalQuestions;
 		this.percentage = percentage;
+		this.submittedAt = Instant.now();
+	}
+
+	public QuizResult(
+			Student student,
+			int score,
+			int totalQuestions,
+			double percentage,
+			String mode,
+			String difficultyBand,
+			String topicSummary,
+			Integer durationSeconds
+	) {
+		this.student = student;
+		this.score = score;
+		this.totalQuestions = totalQuestions;
+		this.percentage = percentage;
+		this.mode = mode == null || mode.isBlank() ? "ADAPTIVE" : mode;
+		this.difficultyBand = difficultyBand;
+		this.topicSummary = topicSummary;
+		this.durationSeconds = durationSeconds == null ? 0 : Math.max(0, durationSeconds);
+		this.completed = true;
 		this.submittedAt = Instant.now();
 	}
 
@@ -84,6 +121,46 @@ public class QuizResult {
 
 	public void setPercentage(double percentage) {
 		this.percentage = percentage;
+	}
+
+	public String getMode() {
+		return mode;
+	}
+
+	public void setMode(String mode) {
+		this.mode = mode == null || mode.isBlank() ? "ADAPTIVE" : mode;
+	}
+
+	public String getDifficultyBand() {
+		return difficultyBand;
+	}
+
+	public void setDifficultyBand(String difficultyBand) {
+		this.difficultyBand = difficultyBand;
+	}
+
+	public String getTopicSummary() {
+		return topicSummary;
+	}
+
+	public void setTopicSummary(String topicSummary) {
+		this.topicSummary = topicSummary;
+	}
+
+	public Integer getDurationSeconds() {
+		return durationSeconds == null ? 0 : durationSeconds;
+	}
+
+	public void setDurationSeconds(Integer durationSeconds) {
+		this.durationSeconds = durationSeconds == null ? 0 : Math.max(0, durationSeconds);
+	}
+
+	public boolean isCompleted() {
+		return completed;
+	}
+
+	public void setCompleted(boolean completed) {
+		this.completed = completed;
 	}
 
 	public Instant getSubmittedAt() {

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav th:fragment="adminNav(activePage, student, notifications)" class="admin-topbar-shell">
+  <div class="admin-topbar">
+    <button class="admin-topbar__menu-button" type="button" data-admin-menu-toggle aria-expanded="false" aria-controls="adminMobileMenu" aria-label="Open navigation menu">
+      <i class="bi bi-list"></i>
+    </button>
+
+    <a class="admin-topbar__brand" th:href="@{/admin}" aria-label="Go to QuizQuest admin dashboard">
+      <span class="admin-topbar__brand-mark">Q</span>
+      <span class="admin-topbar__brand-copy"><span>Q</span>uizQuest Admin</span>
+    </a>
+
+    <div class="admin-topbar__links">
+      <a th:href="@{/admin}" th:class="${'admin-topbar__link' + (activePage == 'dashboard' ? ' is-active' : '')}">Dashboard</a>
+      <a th:href="@{/admin/questions}" th:class="${'admin-topbar__link' + (activePage == 'questions' ? ' is-active' : '')}">Questions</a>
+      <a th:href="@{/admin/categories}" th:class="${'admin-topbar__link' + (activePage == 'categories' ? ' is-active' : '')}">Categories</a>
+      <a th:href="@{/admin/users}" th:class="${'admin-topbar__link' + (activePage == 'users' ? ' is-active' : '')}">Users</a>
+      <a th:href="@{/admin/reports}" th:class="${'admin-topbar__link' + (activePage == 'reports' ? ' is-active' : '')}">Reports</a>
+      <a th:if="${isSuperAdmin}" th:href="@{/admin/settings}" th:class="${'admin-topbar__link' + (activePage == 'settings' ? ' is-active' : '')}">Settings</a>
+    </div>
+
+    <div class="admin-topbar__actions">
+      <div class="notification-wrapper admin-dropdown" data-admin-dropdown data-notification-center>
+        <button class="admin-icon-button notification-bell" type="button" data-admin-dropdown-toggle aria-expanded="false" aria-label="Open notifications">
+          <i class="bi bi-bell"></i>
+          <span class="notification-badge" data-notification-count>0</span>
+        </button>
+        <div class="admin-dropdown__backdrop" data-dropdown-backdrop></div>
+        <div class="admin-dropdown__panel admin-dropdown__panel--notifications notification-panel">
+          <div class="notification-header">
+            <div>
+              <div class="notification-title">Notifications</div>
+              <div class="notification-subtitle">Quick alerts from across Quizora</div>
+            </div>
+            <div class="notification-header__actions">
+              <button class="notification-mark-read" type="button" data-mark-all-read>Mark all as read</button>
+              <button class="notification-clear" type="button" data-clear-all-notifications aria-label="Clear all notifications">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+          <div class="notification-list" data-notification-list>
+            <a class="notification-item"
+               th:each="note : ${notifications}"
+               th:href="${note.href}"
+               th:attr="data-notification-id=${note.id},
+                        data-notification-type=${note.type},
+                        data-notification-title=${note.title},
+                        data-notification-description=${note.message},
+                        data-notification-href=${note.href},
+                        data-notification-action=${note.actionLabel},
+                        data-notification-created=${note.createdAt},
+                         data-notification-relative=${note.relativeTime},
+                         data-notification-unread=${note.isNew}"
+               th:classappend="${note.isNew ? ' unread' : ''}">
+              <span class="notification-item__icon" th:attr="data-type=${note.type}">
+                <i class="bi" th:classappend="${note.type == 'user' ? ' bi-person-plus' : (note.type == 'report' ? ' bi-flag' : (note.type == 'quiz' ? ' bi-clipboard-check' : ' bi-cpu'))}"></i>
+              </span>
+              <span class="notification-item__content">
+                <span class="notification-item__title" th:text="${note.title}">New user registered</span>
+                <span class="notification-item__description" th:text="${note.message}">Someone new joined the platform.</span>
+              </span>
+              <span class="notification-item__meta">
+                <span class="notification-item__time" th:text="${note.relativeTime}">2m ago</span>
+                <span class="notification-item__dot" th:if="${note.isNew}"></span>
+              </span>
+            </a>
+            <div class="notification-empty" th:if="${#lists.isEmpty(notifications)}">
+              <i class="bi bi-bell-slash"></i>
+              <span>No new notifications</span>
+            </div>
+          </div>
+          <div class="notification-more" data-notification-more hidden></div>
+          <div class="notification-footer">
+            <a class="notification-footer__link" th:href="@{/admin/notifications}">View all notifications</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-dropdown" data-admin-dropdown>
+        <button class="admin-profile-button" type="button" data-admin-dropdown-toggle aria-expanded="false">
+          <span class="admin-profile-button__avatar"
+                th:text="${student != null and student.fullName != null and !#strings.isEmpty(student.fullName) ? #strings.substring(student.fullName,0,1) : 'A'}">A</span>
+          <span class="admin-profile-button__name" th:text="${student != null ? student.fullName : 'Admin'}">Default Admin</span>
+          <i class="bi bi-chevron-down"></i>
+        </button>
+        <div class="admin-dropdown__panel">
+          <a class="admin-dropdown__item" th:href="@{/profile}">
+            <i class="bi bi-person-circle"></i>
+            <span>Profile</span>
+          </a>
+          <a class="admin-dropdown__item" th:if="${isSuperAdmin}" th:href="@{/admin/settings}">
+            <i class="bi bi-sliders"></i>
+            <span>Settings</span>
+          </a>
+          <form th:action="@{/logout}" method="post" class="m-0">
+            <button type="submit" class="admin-dropdown__item admin-dropdown__item--danger">
+              <i class="bi bi-box-arrow-right"></i>
+              <span>Logout</span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-mobile-menu" id="adminMobileMenu" data-admin-mobile-menu aria-hidden="true">
+    <div class="admin-mobile-menu__backdrop" data-admin-menu-close></div>
+    <div class="admin-mobile-menu__panel">
+      <div class="admin-mobile-menu__header">
+        <span class="admin-topbar__brand-copy">Quizora Admin</span>
+        <button class="admin-icon-button admin-mobile-menu__close" type="button" data-admin-menu-close aria-label="Close navigation menu">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="admin-mobile-menu__links">
+        <a th:href="@{/admin}" th:class="${'admin-mobile-menu__link' + (activePage == 'dashboard' ? ' is-active' : '')}">Dashboard</a>
+        <a th:href="@{/admin/questions}" th:class="${'admin-mobile-menu__link' + (activePage == 'questions' ? ' is-active' : '')}">Questions</a>
+        <a th:href="@{/admin/categories}" th:class="${'admin-mobile-menu__link' + (activePage == 'categories' ? ' is-active' : '')}">Categories</a>
+        <a th:href="@{/admin/users}" th:class="${'admin-mobile-menu__link' + (activePage == 'users' ? ' is-active' : '')}">Users</a>
+        <a th:href="@{/admin/reports}" th:class="${'admin-mobile-menu__link' + (activePage == 'reports' ? ' is-active' : '')}">Reports</a>
+        <a th:if="${isSuperAdmin}" th:href="@{/admin/settings}" th:class="${'admin-mobile-menu__link' + (activePage == 'settings' ? ' is-active' : '')}">Settings</a>
+        <a th:href="@{/admin/notifications}" th:class="${'admin-mobile-menu__link' + (activePage == 'notifications' ? ' is-active' : '')}">Notifications</a>
+      </div>
+    </div>
+  </div>
+</nav>
+</body>
+</html>

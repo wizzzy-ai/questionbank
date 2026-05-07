@@ -1,6 +1,7 @@
 package com.example.questionbank.web;
 
 import com.example.questionbank.AuthService;
+import com.example.questionbank.QuizDraftService;
 import com.example.questionbank.QuizResultRepository;
 import com.example.questionbank.SessionKeys;
 import com.example.questionbank.Student;
@@ -15,10 +16,12 @@ import java.util.List;
 public class DashboardController {
 	private final AuthService authService;
 	private final QuizResultRepository quizResultRepository;
+	private final QuizDraftService quizDraftService;
 
-	public DashboardController(AuthService authService, QuizResultRepository quizResultRepository) {
+	public DashboardController(AuthService authService, QuizResultRepository quizResultRepository, QuizDraftService quizDraftService) {
 		this.authService = authService;
 		this.quizResultRepository = quizResultRepository;
+		this.quizDraftService = quizDraftService;
 	}
 
 	@GetMapping("/dashboard")
@@ -45,6 +48,9 @@ public class DashboardController {
 			session.invalidate();
 			return "redirect:/login";
 		}
+		if (student.isAdmin()) {
+			return "redirect:/admin";
+		}
 		model.addAttribute("student", student);
 		List<com.example.questionbank.QuizResult> results = quizResultRepository.findTop20ByStudentIdOrderBySubmittedAtDesc(studentId);
 		int currentStreak = 0;
@@ -62,6 +68,7 @@ public class DashboardController {
 		model.addAttribute("currentStreak", currentStreak);
 		model.addAttribute("totalPoints", student.getTotalPoints());
 		model.addAttribute("leaderboardVisible", student.isLeaderboardVisible());
+		model.addAttribute("activeDraft", quizDraftService.findActiveDraft(studentId).orElse(null));
 		return "dashboard";
 	}
 }

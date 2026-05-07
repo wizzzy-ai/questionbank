@@ -104,7 +104,7 @@ public class ProfileController {
 		model.addAttribute("strongestCategory", strongestCategory);
 		model.addAttribute("totalPoints", student.getTotalPoints());
 		model.addAttribute("leaderboardVisible", student.isLeaderboardVisible());
-		model.addAttribute("leaderboardRank", student.isLeaderboardVisible()
+		model.addAttribute("leaderboardRank", student.isLeaderboardVisible() && !student.isAdmin()
 				? studentRepository.countLeaderboardEntriesAhead(student.getTotalPoints(), student.getId()) + 1
 				: null);
 		model.addAttribute("updated", updated != null && updated);

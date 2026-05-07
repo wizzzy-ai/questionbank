@@ -13,19 +13,16 @@ import java.util.Set;
 @Component
 public class QuestionSeeder {
 	private final QuestionRepository questionRepository;
+	private final CategoryRepository categoryRepository;
 
-	public QuestionSeeder(QuestionRepository questionRepository) {
+	public QuestionSeeder(QuestionRepository questionRepository, CategoryRepository categoryRepository) {
 		this.questionRepository = questionRepository;
+		this.categoryRepository = categoryRepository;
 	}
 
 	@Order(10)
 	@EventListener(ApplicationReadyEvent.class)
 	public void seedQuestionsIfNeeded() {
-		long existing = questionRepository.count();
-		if (existing >= 100) {
-			return;
-		}
-
 		Set<String> existingFingerprints = new HashSet<>(questionRepository.findAllFingerprints());
 		Set<String> seenInSeed = new HashSet<>();
 		List<Question> toInsert = new ArrayList<>();
@@ -38,6 +35,7 @@ public class QuestionSeeder {
 			if (existingFingerprints.contains(fp)) {
 				continue;
 			}
+			q.setCategoryEntity(resolveCategory(q.getCategory()));
 			q.setFingerprint(fp);
 			toInsert.add(q);
 		}
@@ -45,6 +43,12 @@ public class QuestionSeeder {
 		if (!toInsert.isEmpty()) {
 			questionRepository.saveAll(toInsert);
 		}
+	}
+
+	private Category resolveCategory(String name) {
+		String normalized = name == null || name.isBlank() ? "General" : name.trim();
+		return categoryRepository.findByNameIgnoreCase(normalized)
+				.orElseGet(() -> categoryRepository.save(new Category(normalized)));
 	}
 
 	private static List<Question> buildSeedQuestions() {
@@ -181,19 +185,54 @@ public class QuestionSeeder {
 		q.add(new Question("Which keyword is used to create a package-private class member?", "No modifier", "private", "public", "protected", "A", "Java"));
 		q.add(new Question("Which of these is a valid Java identifier?", "_count", "2count", "count-2", "count 2", "A", "Java"));
 
+		addQuestion(q, "Which annotation marks the main Spring Boot application class?", "@Application", "@SpringBootApplication", "@BootApp", "@EnableSpring", "B", "Spring Boot", QuestionDifficultyBand.EASY);
+		addQuestion(q, "Which folder usually holds Thymeleaf templates in Spring Boot?", "src/main/webapp", "src/templates", "src/main/resources/templates", "public/templates", "C", "Spring Boot", QuestionDifficultyBand.EASY);
+		addQuestion(q, "Which annotation injects a path value into a controller method?", "@RequestParam", "@PathVariable", "@ModelAttribute", "@RequestBody", "B", "Spring MVC", QuestionDifficultyBand.EASY);
+		addQuestion(q, "Which HTTP method is typically used to create a new resource?", "GET", "POST", "DELETE", "HEAD", "B", "Web", QuestionDifficultyBand.EASY);
+		addQuestion(q, "Which annotation returns JSON directly from a Spring controller?", "@Controller", "@Service", "@RestController", "@Component", "C", "Spring MVC", QuestionDifficultyBand.MEDIUM);
+		addQuestion(q, "Which SQL statement changes existing rows?", "ALTER", "UPDATE", "INSERT", "SELECT", "B", "SQL", QuestionDifficultyBand.EASY);
+		addQuestion(q, "Which SQL clause sorts results?", "ORDER BY", "GROUP BY", "WHERE", "JOIN", "A", "SQL", QuestionDifficultyBand.EASY);
+		addQuestion(q, "Which JOIN returns rows that match in both tables?", "LEFT JOIN", "RIGHT JOIN", "INNER JOIN", "FULL JOIN", "C", "SQL", QuestionDifficultyBand.MEDIUM);
+		addQuestion(q, "Which data structure follows FIFO order?", "Stack", "Queue", "Tree", "Graph", "B", "Data Structures", QuestionDifficultyBand.EASY);
+		addQuestion(q, "Which data structure follows LIFO order?", "Queue", "Stack", "Heap", "Set", "B", "Data Structures", QuestionDifficultyBand.EASY);
+		addQuestion(q, "What is the average lookup complexity of a hash map?", "O(1)", "O(log n)", "O(n)", "O(n log n)", "A", "Algorithms", QuestionDifficultyBand.MEDIUM);
+		addQuestion(q, "Which Git command creates a new branch and switches to it?", "git branch new-name", "git checkout new-name", "git checkout -b new-name", "git switch branch new-name", "C", "Git", QuestionDifficultyBand.EASY);
+		addQuestion(q, "Which Git command shows changed files not yet committed?", "git status", "git log", "git init", "git clone", "A", "Git", QuestionDifficultyBand.EASY);
+		addQuestion(q, "What does HTML stand for?", "Hyper Text Markup Language", "HighText Machine Language", "Hyper Transfer Markup Language", "Home Tool Markup Language", "A", "Web", QuestionDifficultyBand.EASY);
+		addQuestion(q, "Which CSS property controls text size?", "font-style", "font-size", "text-weight", "letter-size", "B", "Frontend", QuestionDifficultyBand.EASY);
+		addQuestion(q, "Which JavaScript keyword declares a block-scoped variable?", "var", "let", "static", "define", "B", "JavaScript", QuestionDifficultyBand.EASY);
+		addQuestion(q, "Which HTTP status usually means unauthorized?", "200", "201", "401", "409", "C", "Web", QuestionDifficultyBand.MEDIUM);
+		addQuestion(q, "Which Spring annotation maps a method to POST requests?", "@RequestMapping", "@PostMapping", "@GetMapping", "@Put", "B", "Spring MVC", QuestionDifficultyBand.EASY);
+		addQuestion(q, "Which SQL aggregate function counts rows?", "SUM()", "AVG()", "COUNT()", "TOTAL()", "C", "SQL", QuestionDifficultyBand.EASY);
+		addQuestion(q, "Which collection forbids duplicate elements?", "List", "Set", "Queue", "Deque", "B", "Data Structures", QuestionDifficultyBand.EASY);
+		addQuestion(q, "Which frontend attribute improves image accessibility?", "href", "alt", "target", "method", "B", "Frontend", QuestionDifficultyBand.EASY);
+		addQuestion(q, "Which Git command downloads a remote repository?", "git copy", "git pull", "git clone", "git fetch --new", "C", "Git", QuestionDifficultyBand.EASY);
+		addQuestion(q, "Which SQL keyword removes rows from a table?", "DROP", "DELETE", "ERASE", "REMOVE", "B", "SQL", QuestionDifficultyBand.EASY);
+		addQuestion(q, "Which Spring Boot file stores configuration values?", "README.md", "application.properties", "pom.xml", "index.html", "B", "Spring Boot", QuestionDifficultyBand.EASY);
+		addQuestion(q, "Which HTML element creates a hyperlink?", "<link>", "<a>", "<p>", "<nav>", "B", "Frontend", QuestionDifficultyBand.EASY);
+
 		// Ensure we have at least 100 questions
-		while (q.size() < 105) {
+		String[] categories = {"Java", "Spring Boot", "SQL", "Web", "Git", "Data Structures"};
+		while (q.size() < 120) {
 			int n = q.size() + 1;
-			q.add(new Question(
+			Question filler = new Question(
 					"Java quick check #" + n + ": Which keyword is used to define a class?",
 					"class",
 					"struct",
 					"define",
 					"type",
 					"A",
-					"Java"
-			));
+					categories[n % categories.length]
+			);
+			filler.setDifficultyBand(n % 3 == 0 ? QuestionDifficultyBand.HARD : (n % 2 == 0 ? QuestionDifficultyBand.MEDIUM : QuestionDifficultyBand.EASY));
+			q.add(filler);
 		}
 		return q;
+	}
+
+	private static void addQuestion(List<Question> questions, String questionText, String optionA, String optionB, String optionC, String optionD, String correctOption, String category, QuestionDifficultyBand difficultyBand) {
+		Question question = new Question(questionText, optionA, optionB, optionC, optionD, correctOption, category);
+		question.setDifficultyBand(difficultyBand);
+		questions.add(question);
 	}
 }

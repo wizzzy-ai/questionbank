@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reset Link</title>
+  <link rel="stylesheet" th:href="@{/css/auth.css}" href="/css/auth.css">
+</head>
+<body class="auth-page">
+<main class="auth-shell" style="grid-template-columns:1fr;max-width:760px;">
+  <section class="auth-panel" style="padding:0;">
+    <div class="auth-panel__inner">
+      <div class="auth-form is-active" style="position:static;opacity:1;visibility:visible;transform:none;pointer-events:auto;">
+        <header class="auth-form__head">
+          <p class="auth-form__eyebrow" th:text="${emailSent ? 'Email Sent' : 'Reset Ready'}">Reset Ready</p>
+          <h2 th:text="${emailSent ? 'Password reset email sent!' : 'Password reset link generated.'}">Password reset link generated.</h2>
+          <p th:if="${emailSent}" th:text="|We have sent a password reset link to ${email}. Please check your inbox and spam folder.|">We have sent a password reset link to your email. Please check your inbox and spam folder.</p>
+          <p th:if="${!emailSent}" th:text="|Use this development link to reset the password for ${email}.|">Use this development link to reset the password for your email.</p>
+        </header>
+        <div class="auth-alert auth-alert--info" th:if="${!emailSent}">SMTP is not configured yet, so reset link is displayed here.</div>
+        <div class="auth-alert auth-alert--success" th:if="${emailSent}">
+          <strong>Email sent successfully!</strong> Please check your Gmail inbox (including spam folder) for the reset link.
+        </div>
+        <div class="field-group" th:if="${resetToken != null and !emailSent}">
+          <label>Reset link</label>
+          <div class="field-shell">
+            <input type="text" readonly th:value="|http://localhost:8080/reset-password?token=${resetToken}|">
+          </div>
+        </div>
+        <a class="text-link" th:href="@{/login}">Back to login</a>
+      </div>
+    </div>
+  </section>
+</main>
+</body>
+</html>

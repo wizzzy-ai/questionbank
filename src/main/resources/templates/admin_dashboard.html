@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Dashboard | Quizora Admin</title>
+  <meta name="_csrf" th:content="${_csrf.token}"/>
+  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+  <meta name="_csrf_parameter" th:content="${_csrf.parameterName}"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+  <link rel="stylesheet" th:href="@{/css/admin.css}"/>
+</head>
+<body class="admin-body">
+<div class="admin-shell">
+  <div th:replace="~{fragments/admin_nav :: adminNav(${activeAdminPage}, ${student}, ${adminNotifications})}"></div>
+
+  <main class="admin-page">
+    <section class="admin-panel">
+      <div class="admin-header">
+        <div>
+          <span class="admin-header__eyebrow">Control Center</span>
+          <h1>Dashboard</h1>
+          <p>Overview of platform activity, recent operations, and the health of your quiz workspace.</p>
+        </div>
+        <span class="dashboard-header__chip">Last 10 activities</span>
+      </div>
+
+      <section class="admin-grid-4 dashboard-grid-mobile-2">
+        <article class="admin-stat card-inner">
+          <div class="admin-stat__top">
+            <span class="admin-stat__icon"><i class="bi bi-patch-question"></i></span>
+            <div>
+              <div class="admin-stat__label">Total Questions</div>
+              <span class="admin-stat__value" th:text="${totalQuestions}">0</span>
+              <div class="admin-stat__meta">Across all categories</div>
+            </div>
+          </div>
+        </article>
+        <article class="admin-stat card-inner">
+          <div class="admin-stat__top">
+            <span class="admin-stat__icon"><i class="bi bi-people"></i></span>
+            <div>
+              <div class="admin-stat__label">Total Users</div>
+              <span class="admin-stat__value" th:text="${totalUsers}">0</span>
+              <div class="admin-stat__meta">Registered accounts</div>
+            </div>
+          </div>
+        </article>
+        <article class="admin-stat card-inner">
+          <div class="admin-stat__top">
+            <span class="admin-stat__icon"><i class="bi bi-clipboard-check"></i></span>
+            <div>
+              <div class="admin-stat__label">Quizzes Taken</div>
+              <span class="admin-stat__value" th:text="${quizzesTaken}">0</span>
+              <div class="admin-stat__meta">Completed sessions</div>
+            </div>
+          </div>
+        </article>
+        <article class="admin-stat card-inner">
+          <div class="admin-stat__top">
+            <span class="admin-stat__icon"><i class="bi bi-lightning-charge"></i></span>
+            <div>
+              <div class="admin-stat__label">Active Today</div>
+              <span class="admin-stat__value" th:text="${activeToday}">0</span>
+              <div class="admin-stat__meta">Distinct quiz takers in 24h</div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="admin-card card-glass" style="margin-top:20px">
+        <div class="admin-card__head">
+          <div>
+            <h2>Recent Activity</h2>
+            <p>Showing the last 10 activities by default. Older than 30 days is archived from the live view.</p>
+          </div>
+          <button class="dashboard-activity__clear" type="button" data-clear-activity-feed>Clear activity feed</button>
+        </div>
+
+        <div class="dashboard-activity-toolbar">
+          <span class="admin-table-note">This removes your local view only. Data is preserved in Reports.</span>
+          <div class="admin-hero-actions">
+            <button class="admin-button admin-button--ghost admin-button--sm" type="button" data-activity-expand="10">Show more</button>
+            <a class="admin-button admin-button--outline admin-button--sm" th:href="@{/admin/reports}">View all</a>
+          </div>
+        </div>
+
+        <div class="dashboard-activity-list" data-dashboard-activity-list>
+          <a class="dashboard-activity-item"
+             th:each="activity, iter : ${recentActivity}"
+             th:href="${activity.href}"
+             th:attr="data-activity-index=${iter.index},
+                      data-activity-timestamp=${activity.timestamp},
+                      data-activity-actor=${activity.actor},
+                      data-activity-action=${activity.action}">
+            <span class="dashboard-activity__avatar" th:text="${activity.actor != null and !#strings.isEmpty(activity.actor) ? #strings.substring(activity.actor,0,1) : 'Q'}">A</span>
+            <span class="dashboard-activity__body">
+              <span class="dashboard-activity__line">
+                <strong th:text="${activity.actor}">Ada</strong>
+                <span th:text="${activity.action}">completed a quiz</span>
+              </span>
+              <span class="admin-table-note"
+                    th:text="${activity.timestamp != null ? #temporals.format(activity.timestamp.atZone(T(java.time.ZoneId).systemDefault()), 'dd MMM yyyy, HH:mm') : 'N/A'}">25 Apr 2026, 12:00</span>
+            </span>
+            <span class="dashboard-activity__time">
+              <span class="dashboard-activity__badge admin-pill admin-pill--stale"
+                    th:if="${activity.timestamp != null and activity.timestamp.isBefore(T(java.time.Instant).now().minus(30, T(java.time.temporal.ChronoUnit).DAYS))}">Archive</span>
+              <span th:text="${activity.timestamp != null ? #temporals.format(activity.timestamp.atZone(T(java.time.ZoneId).systemDefault()), 'dd MMM') : 'N/A'}">25 Apr</span>
+            </span>
+          </a>
+
+          <div class="dashboard-activity-empty" th:if="${#lists.isEmpty(recentActivity)}">
+            No recent activity. New quiz completions and user actions will appear here.
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+</div>
+<script th:src="@{/js/admin.js}"></script>
+</body>
+</html>

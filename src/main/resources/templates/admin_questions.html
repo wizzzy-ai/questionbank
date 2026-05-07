@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Questions | Quizora Admin</title>
+  <meta name="_csrf" th:content="${_csrf.token}"/>
+  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+  <meta name="_csrf_parameter" th:content="${_csrf.parameterName}"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+  <link rel="stylesheet" th:href="@{/css/admin.css}"/>
+</head>
+<body class="admin-body">
+<div class="admin-shell">
+  <div th:replace="~{fragments/admin_nav :: adminNav(${activeAdminPage}, ${student}, ${adminNotifications})}"></div>
+
+  <main class="admin-page">
+    <section class="admin-panel">
+      <div class="admin-header">
+        <div>
+          <span class="admin-header__eyebrow">Question Control</span>
+          <h1>Manage Questions</h1>
+          <p>Create, filter, archive, and review your question bank across every category and difficulty level.</p>
+        </div>
+        <a class="admin-button admin-button--primary" th:href="@{/admin/questions/new}">
+          <i class="bi bi-plus-lg"></i>
+          <span>Add New Question</span>
+        </a>
+      </div>
+
+      <div th:if="${saved}" class="admin-alert admin-alert--success">Changes saved.</div>
+      <div th:if="${totalQuestions > 500}" class="admin-alert admin-alert--danger">Large question bank. Consider archiving old questions.</div>
+
+      <section class="admin-grid-4">
+        <article class="admin-stat">
+          <div class="admin-stat__top">
+            <span class="admin-stat__icon"><i class="bi bi-stack"></i></span>
+            <div>
+              <div class="admin-stat__label">Total Questions</div>
+              <span class="admin-stat__value" th:text="${totalQuestions}">0</span>
+              <div class="admin-stat__meta">All questions in the bank</div>
+            </div>
+          </div>
+        </article>
+        <article class="admin-stat">
+          <div class="admin-stat__top">
+            <span class="admin-stat__icon"><i class="bi bi-check2-circle"></i></span>
+            <div>
+              <div class="admin-stat__label">Active Questions</div>
+              <span class="admin-stat__value" th:text="${activeQuestions}">0</span>
+              <div class="admin-stat__meta">Visible and ready to serve</div>
+            </div>
+          </div>
+        </article>
+        <article class="admin-stat">
+          <div class="admin-stat__top">
+            <span class="admin-stat__icon"><i class="bi bi-file-earmark-text"></i></span>
+            <div>
+              <div class="admin-stat__label">Draft Questions</div>
+              <span class="admin-stat__value" th:text="${draftQuestions}">0</span>
+              <div class="admin-stat__meta">Pending review or polish</div>
+            </div>
+          </div>
+        </article>
+        <article class="admin-stat">
+          <div class="admin-stat__top">
+            <span class="admin-stat__icon"><i class="bi bi-tags"></i></span>
+            <div>
+              <div class="admin-stat__label">Categories</div>
+              <span class="admin-stat__value" th:text="${categoryCount}">0</span>
+              <div class="admin-stat__meta">Organized content groups</div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="admin-content-grid" style="margin-top:20px">
+        <article class="admin-card">
+          <div class="admin-card__head">
+            <div>
+              <h2>Filters</h2>
+              <p>Search and narrow by category, difficulty, status, or sort order.</p>
+            </div>
+            <span class="dashboard-header__chip" data-mobile-filter-chip>Filters (3 active)</span>
+          </div>
+          <div class="admin-filters">
+            <div class="admin-field">
+              <label for="question-search">Search</label>
+              <input class="admin-input" id="question-search" type="search" placeholder="Search question or keyword"
+                     data-admin-filter="search" data-target="questions" th:value="${query}">
+            </div>
+            <div class="admin-field">
+              <label for="question-category">Category</label>
+              <select class="admin-select" id="question-category" data-admin-filter="category" data-target="questions">
+                <option value="">All Categories</option>
+                <option th:each="categoryOption : ${categories}" th:value="${categoryOption}" th:text="${categoryOption}" th:selected="${selectedCategory == categoryOption}">Java</option>
+              </select>
+            </div>
+            <div class="admin-field">
+              <label for="question-difficulty">Difficulty</label>
+              <select class="admin-select" id="question-difficulty" data-admin-filter="difficulty" data-target="questions">
+                <option value="">All Difficulties</option>
+                <option value="EASY">Easy</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HARD">Hard</option>
+              </select>
+            </div>
+            <div class="admin-field">
+              <label for="question-status">Status</label>
+              <select class="admin-select" id="question-status" data-admin-filter="status" data-target="questions">
+                <option value="">All Statuses</option>
+                <option value="ACTIVE">Active</option>
+                <option value="DRAFT">Draft</option>
+              </select>
+            </div>
+            <div class="admin-field">
+              <label for="question-sort">Sort By</label>
+              <select class="admin-select" id="question-sort" data-admin-filter="sort" data-target="questions">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="az">Question A-Z</option>
+                <option value="za">Question Z-A</option>
+              </select>
+            </div>
+            <button class="admin-filter__reset" type="button" data-admin-reset="questions">Reset Filters</button>
+          </div>
+        </article>
+
+        <article class="admin-card" data-bulk-import-panel>
+          <div class="admin-card__head">
+            <div>
+              <h2>Bulk Import</h2>
+              <p>Paste `Category|Difficulty|Question|A|B|C|D|CorrectOption` lines.</p>
+            </div>
+          </div>
+          <form th:action="@{/admin/questions/import}" method="post">
+            <div class="admin-field">
+              <label for="bulk-import">Import Payload</label>
+              <textarea class="admin-textarea" id="bulk-import" name="payload" placeholder="Spring Boot|MEDIUM|Which annotation marks a service?|@Entity|@Service|@Controller|@Bean|B"></textarea>
+            </div>
+            <div class="admin-hero-actions" style="margin-top:16px">
+              <button class="admin-button admin-button--primary" type="submit">Import Questions</button>
+            </div>
+          </form>
+        </article>
+      </section>
+
+      <section class="admin-card" style="margin-top:18px">
+        <div class="admin-toolbar">
+          <div class="admin-toolbar__left">
+            <label>
+              <input class="admin-checkbox" type="checkbox" data-select-all="questions">
+            </label>
+            <form th:action="@{/admin/questions/bulk}" method="post" data-bulk-form="questions">
+              <div class="admin-toolbar__left">
+                <select class="admin-select" name="bulkAction" style="min-width:180px">
+                  <option value="">Bulk Actions</option>
+                  <option value="delete">Delete Selected</option>
+                  <option value="active">Mark Active</option>
+                  <option value="draft">Mark Draft</option>
+                  <option value="restore">Restore</option>
+                </select>
+                <button class="admin-button admin-button--ghost" type="submit" data-bulk-submit="questions" disabled>Apply</button>
+                <span class="admin-selected-count" data-selected-count="questions">0 selected</span>
+                <div data-hidden-ids="questions"></div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="admin-table-wrap" data-fade-scroll="true">
+          <div class="admin-table-wrap__scroll">
+          <table class="admin-table" data-admin-table="questions" data-page-size="8" data-visible-pages-desktop="7" data-visible-pages-tablet="5" data-visible-pages-mobile="3">
+            <thead>
+            <tr>
+              <th></th>
+              <th>Question</th>
+              <th>Category</th>
+              <th>Difficulty</th>
+              <th>Status</th>
+              <th>Created Date</th>
+              <th style="text-align:right">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="question : ${questions}"
+                data-row
+                th:attr="data-question=${question.questionText},
+                         data-search=${question.questionText + ' ' + question.category},
+                         data-category=${question.category},
+                         data-difficulty=${question.difficultyBand},
+                         data-status=${question.status},
+                         data-created-at=${question.createdAt != null ? question.createdAt.toString() : ''}">
+              <td>
+                <input class="admin-checkbox" type="checkbox" th:value="${question.id}" data-target-checkbox="questions">
+              </td>
+              <td class="admin-table__question">
+                <div class="admin-table__title" th:text="${question.questionText}">What is the capital of France?</div>
+                <div class="admin-table__meta" th:text="${'Correct answer: ' + question.correctOption + ' | ' + question.attemptsCount + ' attempts'}">Correct answer: B</div>
+              </td>
+              <td>
+                <span class="admin-tag" th:text="${question.category}">Science</span>
+              </td>
+              <td>
+                <span class="admin-pill"
+                      th:classappend="${question.difficultyBand.name() == 'EASY' ? ' admin-pill--easy' : (question.difficultyBand.name() == 'HARD' ? ' admin-pill--hard' : ' admin-pill--medium')}"
+                      th:text="${#strings.capitalize(#strings.toLowerCase(question.difficultyBand.name()))}">Easy</span>
+              </td>
+              <td>
+                <span class="admin-pill"
+                      th:classappend="${question.status.name() == 'ACTIVE' ? ' admin-pill--active' : ' admin-pill--draft'}"
+                      th:text="${#strings.capitalize(#strings.toLowerCase(question.status.name()))}">Active</span>
+              </td>
+              <td class="admin-table-note" th:text="${question.createdAt != null ? #temporals.format(question.createdAt.atZone(T(java.time.ZoneId).systemDefault()), 'dd MMM yyyy') : 'N/A'}">20 May 2024</td>
+              <td class="admin-table__actions">
+                <div class="admin-actions">
+                  <a class="admin-icon-action" th:href="@{/admin/questions/{id}(id=${question.id})}" title="Preview" aria-label="Preview question"><i class="bi bi-eye"></i></a>
+                  <a class="admin-icon-action" th:href="@{/admin/questions/{id}/edit(id=${question.id})}" title="Edit" aria-label="Edit question"><i class="bi bi-pencil"></i></a>
+                  <form class="admin-inline-form" th:action="@{/admin/questions/{id}/duplicate(id=${question.id})}" method="post">
+                    <button class="admin-icon-action" type="submit" title="Duplicate" aria-label="Duplicate question"><i class="bi bi-copy"></i></button>
+                  </form>
+                  <form class="admin-inline-form" th:action="@{/admin/questions/delete}" method="post">
+                    <input type="hidden" name="id" th:value="${question.id}">
+                    <button class="admin-icon-action admin-icon-action--danger" type="submit" title="Delete" aria-label="Delete question" data-question-delete th:attr="data-question-title=${question.questionText}"><i class="bi bi-trash"></i></button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(questions)}">
+              <td colspan="7">
+                <div class="admin-empty">No questions available yet.</div>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+
+        <div class="admin-mobile-list">
+          <article class="admin-mobile-record"
+                   th:each="question : ${questions}"
+                   data-row
+                   th:attr="data-question=${question.questionText},
+                            data-search=${question.questionText + ' ' + question.category},
+                            data-category=${question.category},
+                            data-difficulty=${question.difficultyBand},
+                            data-status=${question.status},
+                            data-created-at=${question.createdAt != null ? question.createdAt.toString() : ''}">
+            <div class="admin-mobile-record__title" th:text="${question.questionText}">What is the capital of France?</div>
+            <div class="admin-mobile-record__meta" th:text="${question.createdAt != null ? #temporals.format(question.createdAt.atZone(T(java.time.ZoneId).systemDefault()), 'dd MMM yyyy') : 'N/A'}">20 May 2024</div>
+            <div class="admin-mobile-record__badges">
+              <span class="admin-tag" th:text="${question.category}">Science</span>
+              <span class="admin-pill"
+                    th:classappend="${question.difficultyBand.name() == 'EASY' ? ' admin-pill--easy' : (question.difficultyBand.name() == 'HARD' ? ' admin-pill--hard' : ' admin-pill--medium')}"
+                    th:text="${#strings.capitalize(#strings.toLowerCase(question.difficultyBand.name()))}">Easy</span>
+              <span class="admin-pill"
+                    th:classappend="${question.status.name() == 'ACTIVE' ? ' admin-pill--active' : ' admin-pill--draft'}"
+                    th:text="${#strings.capitalize(#strings.toLowerCase(question.status.name()))}">Active</span>
+            </div>
+            <div class="admin-mobile-record__actions">
+              <a class="admin-button admin-button--ghost admin-button--sm" th:href="@{/admin/questions/{id}(id=${question.id})}"><i class="bi bi-eye"></i><span>Preview</span></a>
+              <a class="admin-button admin-button--ghost admin-button--sm" th:href="@{/admin/questions/{id}/edit(id=${question.id})}"><i class="bi bi-pencil"></i><span>Edit</span></a>
+              <form class="admin-inline-form" th:action="@{/admin/questions/{id}/duplicate(id=${question.id})}" method="post">
+                <button class="admin-button admin-button--ghost admin-button--sm" type="submit"><i class="bi bi-copy"></i><span>Duplicate</span></button>
+              </form>
+              <form class="admin-inline-form" th:action="@{/admin/questions/delete}" method="post">
+                <input type="hidden" name="id" th:value="${question.id}">
+                <button class="admin-button admin-button--danger admin-button--sm" type="submit" data-question-delete th:attr="data-question-title=${question.questionText}"><i class="bi bi-trash"></i><span>Delete</span></button>
+              </form>
+            </div>
+          </article>
+        </div>
+
+        <div class="admin-pagination" data-admin-pagination="questions">
+          <div class="admin-pagination__info" data-page-info>Showing 0 records</div>
+          <div class="admin-pagination__controls">
+            <button type="button" data-page-prev>Previous</button>
+            <div data-page-list class="admin-pagination__controls"></div>
+            <div class="admin-table-note" data-mobile-page-info hidden>1 of 19</div>
+            <button type="button" data-page-next>Next</button>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+</div>
+<script th:src="@{/js/admin.js}"></script>
+</body>
+</html>

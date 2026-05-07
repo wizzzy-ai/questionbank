@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title th:text="${pageTitle + ' | Quizora Admin'}">Category Form | Quizora Admin</title>
+  <meta name="_csrf" th:content="${_csrf.token}"/>
+  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+  <meta name="_csrf_parameter" th:content="${_csrf.parameterName}"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+  <link rel="stylesheet" th:href="@{/css/admin.css}"/>
+</head>
+<body class="admin-body">
+<div class="admin-shell">
+  <div th:replace="~{fragments/admin_nav :: adminNav(${activeAdminPage}, ${student}, ${adminNotifications})}"></div>
+
+  <main class="admin-page">
+    <section class="admin-panel">
+      <div class="admin-breadcrumb">
+        <a th:href="@{/admin}">Dashboard</a>
+        <i class="bi bi-chevron-right"></i>
+        <a th:href="@{/admin/categories}">Categories</a>
+        <i class="bi bi-chevron-right"></i>
+        <span th:text="${pageTitle}">Add Category</span>
+      </div>
+
+      <div class="admin-header">
+        <div>
+          <span class="admin-header__eyebrow"><i class="bi bi-tag"></i>Category Editor</span>
+          <h1 th:text="${pageTitle}">Add Category</h1>
+          <p>Create or rename category records used by questions across the platform.</p>
+        </div>
+      </div>
+
+      <section class="admin-settings-section">
+        <form th:action="@{/admin/categories/save}" th:object="${categoryForm}" method="post">
+          <input type="hidden" th:field="*{id}">
+          <div class="admin-field">
+            <label for="category-name">Category Name</label>
+            <input class="admin-input" id="category-name" th:field="*{name}" placeholder="Spring Boot">
+          </div>
+          <div class="admin-field" style="margin-top:14px">
+            <label for="category-description">Description (optional)</label>
+            <textarea class="admin-textarea" id="category-description" th:field="*{description}" rows="3" placeholder="Enter description..."></textarea>
+          </div>
+          <div class="admin-field" style="margin-top:14px">
+            <label>Tag Color</label>
+            <div class="color-picker">
+              <button type="button" class="color-option" data-color="#ff7a3d" style="background-color: #ff7a3d;"></button>
+              <button type="button" class="color-option" data-color="#4470f2" style="background-color: #4470f2;"></button>
+              <button type="button" class="color-option" data-color="#1c9c5d" style="background-color: #1c9c5d;"></button>
+              <button type="button" class="color-option" data-color="#b14ad8" style="background-color: #b14ad8;"></button>
+              <button type="button" class="color-option" data-color="#de8c18" style="background-color: #de8c18;"></button>
+              <button type="button" class="color-option" data-color="#d94d4d" style="background-color: #d94d4d;"></button>
+              <button type="button" class="color-option" data-color="#596579" style="background-color: #596579;"></button>
+            </div>
+            <input type="hidden" id="categoryColor" th:field="*{color}" value="#ff7a3d">
+          </div>
+          <div class="admin-hero-actions" style="margin-top:22px">
+            <button class="admin-button admin-button--primary" type="submit">Save Category</button>
+            <a class="admin-button admin-button--ghost" th:href="@{/admin/categories}">Back to Categories</a>
+          </div>
+        </form>
+      </section>
+    </section>
+  </main>
+</div>
+<script th:src="@{/js/admin.js}"></script>
+</body>
+</html>
