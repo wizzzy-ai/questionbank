@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import jakarta.servlet.http.HttpServletRequest;
 
 import com.example.questionbank.XssSanitizer;
 
@@ -22,6 +23,7 @@ public class AuthService {
 	private static final int MAX_VERIFICATION_ATTEMPTS = 5;
 	private static final int MAX_RESEND_PER_HOUR = 3;
 	private static final Duration VERIFICATION_CODE_EXPIRY = Duration.ofMinutes(10);
+	private static final Duration REMEMBER_ME_EXPIRY = Duration.ofDays(30);
 
 	private final StudentRepository studentRepository;
 	private final XssSanitizer xssSanitizer;
@@ -177,7 +179,7 @@ public class AuthService {
 				});
 	}
 
-	public Optional<Student> issuePasswordResetToken(String email) {
+	public Optional<Student> issuePasswordResetToken(String email, HttpServletRequest request) {
 		if (email == null || email.isBlank()) {
 			return Optional.empty();
 		}
@@ -186,7 +188,7 @@ public class AuthService {
 					student.setPasswordResetToken(UUID.randomUUID().toString().replace("-", ""));
 					student.setPasswordResetTokenExpiresAt(Instant.now().plus(Duration.ofHours(1)));
 					studentRepository.save(student);
-					emailService.sendPasswordResetEmail(student.getEmail(), student.getFullName(), student.getPasswordResetToken());
+					emailService.sendPasswordResetEmail(student.getEmail(), student.getFullName(), student.getPasswordResetToken(), request);
 					return student;
 				});
 	}
@@ -311,5 +313,36 @@ public class AuthService {
 	
 	public StudentRepository getStudentRepository() {
 		return studentRepository;
+	}
+
+	public String generateRememberMeToken(Long studentId) {
+		String token = UUID.randomUUID().toString() + "-" + UUID.randomUUID().toString();
+		Student student = studentRepository.findById(studentId).orElse(null);
+		if (student != null) {
+			student.setRememberMeToken(token);
+			student.setRememberMeExpiry(Instant.now().plus(REMEMBER_ME_EXPIRY));
+			studentRepository.save(student);
+			logger.info("Generated remember-me token for student {}", studentId);
+		}
+		return token;
+	}
+
+	public Optional<Student> validateRememberMeToken(String token) {
+		if (token == null || token.isBlank()) {
+			return Optional.empty();
+		}
+		return studentRepository.findByRememberMeToken(token)
+			.filter(student -> !student.isDeleted() && !student.isBanned())
+			.filter(student -> student.getRememberMeExpiry() != null && student.getRememberMeExpiry().isAfter(Instant.now()));
+	}
+
+	public void clearRememberMeToken(Long studentId) {
+		Student student = studentRepository.findById(studentId).orElse(null);
+		if (student != null) {
+			student.setRememberMeToken(null);
+			student.setRememberMeExpiry(null);
+			studentRepository.save(student);
+			logger.info("Cleared remember-me token for student {}", studentId);
+		}
 	}
 }

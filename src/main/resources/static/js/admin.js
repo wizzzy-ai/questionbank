@@ -817,6 +817,290 @@
     updateSelection(tableName);
   }
 
+  function initSettingsPage() {
+    var page = document.querySelector('[data-settings-page]');
+    if (!page) {
+      return;
+    }
+
+    var settingsState = {
+      originalValues: {
+        siteName: page.querySelector('[data-setting="siteName"]')?.value || '',
+        email: page.querySelector('[data-setting="email"]')?.value || '',
+        defaultTime: page.querySelector('[data-setting="defaultTime"]')?.value || '',
+        maxQuestions: page.querySelector('[data-setting="maxQuestions"]')?.value || '',
+        retention: page.querySelector('[data-setting="retention"]')?.value || '',
+        autoDelete: page.querySelector('[data-setting="autoDelete"]')?.value || ''
+      },
+      isDirty: false
+    };
+
+    var controls = {
+      siteName: page.querySelector('[data-setting="siteName"]'),
+      email: page.querySelector('[data-setting="email"]'),
+      password: page.querySelector('[data-setting="password"]'),
+      logoUpload: page.querySelector('[data-setting="logoUpload"]'),
+      defaultTime: page.querySelector('[data-setting="defaultTime"]'),
+      maxQuestions: page.querySelector('[data-setting="maxQuestions"]'),
+      retention: page.querySelector('[data-setting="retention"]'),
+      autoDelete: page.querySelector('[data-setting="autoDelete"]'),
+      saveButton: page.querySelector('[data-setting="save"]'),
+      resetButton: page.querySelector('[data-setting="reset"]'),
+      archiveButton: page.querySelector('[data-setting="archive"]'),
+      exportButton: page.querySelector('[data-setting="export"]'),
+      logoPreview: page.querySelector('[data-logo-preview]')
+    };
+
+    function checkIfDirty() {
+      var currentValues = {
+        siteName: controls.siteName?.value || '',
+        email: controls.email?.value || '',
+        defaultTime: controls.defaultTime?.value || '',
+        maxQuestions: controls.maxQuestions?.value || '',
+        retention: controls.retention?.value || '',
+        autoDelete: controls.autoDelete?.value || ''
+      };
+
+      settingsState.isDirty = Object.keys(currentValues).some(function(key) {
+        return currentValues[key] !== settingsState.originalValues[key];
+      });
+
+      if (controls.saveButton) {
+        controls.saveButton.disabled = !settingsState.isDirty;
+        controls.saveButton.textContent = settingsState.isDirty ? 'Save Changes' : 'No Changes';
+      }
+    }
+
+    function showSuccessMessage(message) {
+      var alert = document.createElement('div');
+      alert.className = 'admin-alert admin-alert--success';
+      alert.textContent = message;
+      alert.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;animation:slideInRight 0.3s ease';
+      document.body.appendChild(alert);
+      
+      setTimeout(function() {
+        alert.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(function() { alert.remove(); }, 300);
+      }, 3000);
+    }
+
+    function showErrorMessage(message) {
+      var alert = document.createElement('div');
+      alert.className = 'admin-alert admin-alert--error';
+      alert.textContent = message;
+      alert.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;animation:slideInRight 0.3s ease';
+      document.body.appendChild(alert);
+      
+      setTimeout(function() { alert.remove(); }, 5000);
+    }
+
+    function handleSave() {
+      if (!settingsState.isDirty) {
+        return;
+      }
+
+      var formData = {
+        siteName: controls.siteName?.value || '',
+        email: controls.email?.value || '',
+        password: controls.password?.value || '',
+        defaultTime: controls.defaultTime?.value || '',
+        maxQuestions: controls.maxQuestions?.value || '',
+        retention: controls.retention?.value || '',
+        autoDelete: controls.autoDelete?.value || ''
+      };
+
+      controls.saveButton.disabled = true;
+      controls.saveButton.textContent = 'Saving...';
+
+      // Simulate API call
+      setTimeout(function() {
+        // Update original values
+        settingsState.originalValues = {
+          siteName: formData.siteName,
+          email: formData.email,
+          defaultTime: formData.defaultTime,
+          maxQuestions: formData.maxQuestions,
+          retention: formData.retention,
+          autoDelete: formData.autoDelete
+        };
+        
+        settingsState.isDirty = false;
+        checkIfDirty();
+        showSuccessMessage('Settings saved successfully!');
+        
+        // Clear password field
+        if (controls.password) {
+          controls.password.value = '';
+        }
+      }, 1000);
+    }
+
+    function handleReset() {
+      if (!settingsState.isDirty) {
+        return;
+      }
+
+      if (confirm('Are you sure you want to reset all unsaved changes?')) {
+        controls.siteName.value = settingsState.originalValues.siteName;
+        controls.email.value = settingsState.originalValues.email;
+        controls.defaultTime.value = settingsState.originalValues.defaultTime;
+        controls.maxQuestions.value = settingsState.originalValues.maxQuestions;
+        controls.retention.value = settingsState.originalValues.retention;
+        controls.autoDelete.value = settingsState.originalValues.autoDelete;
+        
+        if (controls.password) {
+          controls.password.value = '';
+        }
+        
+        settingsState.isDirty = false;
+        checkIfDirty();
+      }
+    }
+
+    function handleArchive() {
+      if (confirm('Are you sure you want to archive all questions unused for 6 months? This action cannot be undone.')) {
+        controls.archiveButton.disabled = true;
+        controls.archiveButton.textContent = 'Archiving...';
+
+        // Simulate API call
+        setTimeout(function() {
+          controls.archiveButton.disabled = false;
+          controls.archiveButton.textContent = 'Archive questions unused for 6 months';
+          showSuccessMessage('Successfully archived 142 unused questions!');
+        }, 2000);
+      }
+    }
+
+    function handleExport() {
+      var format = confirm('Export format:\nOK = JSON\nCancel = CSV');
+      var exportFormat = format ? 'json' : 'csv';
+      
+      controls.exportButton.disabled = true;
+      controls.exportButton.textContent = 'Exporting...';
+
+      // Simulate API call and download
+      setTimeout(function() {
+        var data = {
+          settings: {
+            siteName: controls.siteName?.value || '',
+            defaultTime: controls.defaultTime?.value || '',
+            maxQuestions: controls.maxQuestions?.value || '',
+            retention: controls.retention?.value || '',
+            autoDelete: controls.autoDelete?.value || ''
+          },
+          users: [
+            { id: 1, name: 'John Doe', email: 'john@example.com', role: 'admin', createdAt: '2024-01-15' },
+            { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'user', createdAt: '2024-01-20' },
+            { id: 3, name: 'Bob Johnson', email: 'bob@example.com', role: 'user', createdAt: '2024-02-01' }
+          ],
+          questions: [
+            { id: 1, title: 'Java Basics', category: 'Java', difficulty: 'easy', createdAt: '2024-01-10', usageCount: 25 },
+            { id: 2, title: 'Spring Boot', category: 'Framework', difficulty: 'medium', createdAt: '2024-01-12', usageCount: 18 },
+            { id: 3, title: 'Hibernate', category: 'Database', difficulty: 'hard', createdAt: '2024-01-15', usageCount: 12 }
+          ],
+          exportDate: new Date().toISOString()
+        };
+
+        var content, filename, mimeType;
+        
+        if (exportFormat === 'json') {
+          content = JSON.stringify(data, null, 2);
+          filename = 'quizora-export-' + new Date().toISOString().slice(0, 10) + '.json';
+          mimeType = 'application/json';
+        } else {
+          // Convert to CSV
+          var csv = '# Quizora Export - ' + new Date().toISOString().slice(0, 10) + '\n';
+          csv += '\n## Settings\n';
+          csv += 'Setting,Value\n';
+          Object.keys(data.settings).forEach(function(key) {
+            csv += key + ',' + data.settings[key] + '\n';
+          });
+          
+          csv += '\n## Users\n';
+          csv += 'ID,Name,Email,Role,Created At\n';
+          data.users.forEach(function(user) {
+            csv += user.id + ',"' + user.name + '",' + user.email + ',' + user.role + ',' + user.createdAt + '\n';
+          });
+          
+          csv += '\n## Questions\n';
+          csv += 'ID,Title,Category,Difficulty,Created At,Usage Count\n';
+          data.questions.forEach(function(question) {
+            csv += question.id + ',"' + question.title + '",' + question.category + ',' + question.difficulty + ',' + question.createdAt + ',' + question.usageCount + '\n';
+          });
+          
+          content = csv;
+          filename = 'quizora-export-' + new Date().toISOString().slice(0, 10) + '.csv';
+          mimeType = 'text/csv';
+        }
+
+        // Download the file
+        var blob = new Blob([content], { type: mimeType + ';charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        controls.exportButton.disabled = false;
+        controls.exportButton.textContent = 'Export all data as JSON/CSV';
+        showSuccessMessage('Data exported successfully as ' + exportFormat.toUpperCase() + '!');
+      }, 1500);
+    }
+
+    function handleLogoUpload(event) {
+      var file = event.target.files[0];
+      if (!file) return;
+      
+      if (!file.type.match('image.*')) {
+        showErrorMessage('Please select an image file (JPG, PNG, GIF)');
+        return;
+      }
+      
+      if (file.size > 2 * 1024 * 1024) { // 2MB limit
+        showErrorMessage('File size must be less than 2MB');
+        return;
+      }
+
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        if (controls.logoPreview) {
+          controls.logoPreview.style.backgroundImage = 'url(' + e.target.result + ')';
+          controls.logoPreview.textContent = '';
+          settingsState.isDirty = true;
+          checkIfDirty();
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Bind event listeners
+    Object.keys(controls).forEach(function(key) {
+      var control = controls[key];
+      if (!control) return;
+      
+      if (key === 'saveButton') {
+        control.addEventListener('click', handleSave);
+      } else if (key === 'resetButton') {
+        control.addEventListener('click', handleReset);
+      } else if (key === 'archiveButton') {
+        control.addEventListener('click', handleArchive);
+      } else if (key === 'exportButton') {
+        control.addEventListener('click', handleExport);
+      } else if (key === 'logoUpload') {
+        control.addEventListener('change', handleLogoUpload);
+      } else if (key !== 'logoPreview' && key !== 'password') {
+        control.addEventListener('input', checkIfDirty);
+        control.addEventListener('change', checkIfDirty);
+      }
+    });
+
+    // Initialize
+    checkIfDirty();
+  }
+
   function initReportsPage() {
     var page = document.querySelector('[data-reports-page]');
     if (!page) {
@@ -1511,6 +1795,7 @@
     renderNotificationsPage();
     bindNotificationEvents();
     simulateNotificationArrival();
+    initSettingsPage();
     initReportsPage();
     initDataTable('questions');
     initDataTable('users');

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Quiz - Question Bank</title>
+  <title>Quiz - QuizQuest</title>
   <meta name="_csrf" th:content="${_csrf.token}"/>
   <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
   <meta name="_csrf_parameter" th:content="${_csrf.parameterName}"/>
@@ -38,7 +38,7 @@
             <div class="d-flex align-items-center gap-2 flex-wrap justify-content-center">
               <span class="pill" th:if="${selectedDifficulty != null}" th:text="${selectedDifficulty}">MEDIUM</span>
               <span class="pill" th:if="${selectedTopics != null and !#lists.isEmpty(selectedTopics)}"
-                    th:text="${#lists.size(selectedTopics)} + ' topic' + (${#lists.size(selectedTopics) > 1} ? 's' : '')">2 topics</span>
+                    th:text="|${#lists.size(selectedTopics)} topic${#lists.size(selectedTopics) > 1 ? 's' : ''}|">2 topics</span>
             </div>
             <div class="quizora-timer" id="timer"
                  data-bs-toggle="tooltip" data-bs-title="Time remaining" data-bs-placement="bottom">

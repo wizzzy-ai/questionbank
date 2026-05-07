@@ -2,6 +2,7 @@ package com.example.questionbank;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,18 +47,39 @@ public class EmailService {
 		sendHtmlEmail(toEmail, subject, htmlContent);
 	}
 
-	public void sendPasswordResetEmail(String toEmail, String fullName, String token) {
+	@Value("${server.servlet.context-path:}")
+	private String contextPath;
+
+	public void sendPasswordResetEmail(String toEmail, String fullName, String token, HttpServletRequest request) {
 		if (!emailEnabled) {
 			logger.warn("Email sending is disabled. Password reset token for {}: {}", toEmail, token);
 			return;
 		}
 
 		String subject = "Reset Your Password - Question Bank";
-		String resetLink = "http://localhost:8080/reset-password?token=" + token;
+		String resetLink = buildResetUrl(request, token);
 
 		String htmlContent = buildPasswordResetEmail(fullName, resetLink);
 
 		sendHtmlEmail(toEmail, subject, htmlContent);
+	}
+
+	private String buildResetUrl(HttpServletRequest request, String token) {
+		String scheme = request.getScheme();
+		String serverName = request.getServerName();
+		int serverPort = request.getServerPort();
+		String contextPath = request.getContextPath();
+		
+		StringBuilder url = new StringBuilder();
+		url.append(scheme).append("://").append(serverName);
+		
+		// Only include port if it's not the default port for the scheme
+		if (("http".equals(scheme) && serverPort != 80) || ("https".equals(scheme) && serverPort != 443)) {
+			url.append(":").append(serverPort);
+		}
+		
+		url.append(contextPath).append("/reset-password?token=").append(token);
+		return url.toString();
 	}
 
 	private void sendHtmlEmail(String toEmail, String subject, String htmlContent) {

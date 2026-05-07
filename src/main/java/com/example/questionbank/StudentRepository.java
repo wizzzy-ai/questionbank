@@ -17,6 +17,8 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 
 	Optional<Student> findByPasswordResetToken(String passwordResetToken);
 
+	Optional<Student> findByRememberMeToken(String rememberMeToken);
+
 	List<Student> findAllByRole(StudentRole role);
 
 	Optional<Student> findFirstByRoleOrderByCreatedAtAscIdAsc(StudentRole role);

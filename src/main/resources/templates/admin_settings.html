@@ -13,7 +13,7 @@
 <body class="admin-body">
 <div class="admin-shell">
   <div th:replace="~{fragments/admin_nav :: adminNav(${activeAdminPage}, ${student}, ${adminNotifications})}"></div>
-  <main class="admin-page">
+  <main class="admin-page" data-settings-page>
     <section class="admin-panel">
       <div class="admin-header">
         <div>
@@ -29,14 +29,14 @@
             <h3>General Settings</h3>
             <div class="admin-field">
               <label>Site Name</label>
-              <input class="admin-input" th:value="${siteName}">
+              <input class="admin-input" th:value="${siteName}" data-setting="siteName">
             </div>
             <div class="admin-field" style="margin-top:14px">
               <label>Logo Upload</label>
-              <input class="admin-input" type="file">
+              <input class="admin-input" type="file" data-setting="logoUpload">
             </div>
             <div class="settings-preview">
-              <span class="settings-preview__logo">Q</span>
+              <span class="settings-preview__logo" data-logo-preview>Q</span>
               <span class="admin-table-note">Preview your uploaded logo before applying workspace changes.</span>
             </div>
           </article>
@@ -45,11 +45,11 @@
             <h3>Account Settings</h3>
             <div class="admin-field">
               <label>Update Email</label>
-              <input class="admin-input" type="email" th:value="${student != null ? student.email : ''}">
+              <input class="admin-input" type="email" th:value="${student != null ? student.email : ''}" data-setting="email">
             </div>
             <div class="admin-field" style="margin-top:14px">
               <label>Change Password</label>
-              <input class="admin-input" type="password" placeholder="••••••••">
+              <input class="admin-input" type="password" placeholder="••••••••" data-setting="password">
             </div>
           </article>
         </div>
@@ -59,11 +59,11 @@
             <h3>Quiz Settings</h3>
             <div class="admin-field">
               <label>Default Time Per Quiz (minutes)</label>
-              <input class="admin-input" type="number" th:value="${defaultTime}">
+              <input class="admin-input" type="number" th:value="${defaultTime}" data-setting="defaultTime">
             </div>
             <div class="admin-field" style="margin-top:14px">
               <label>Max Questions Per Quiz</label>
-              <input class="admin-input" type="number" th:value="${maxQuestions}">
+              <input class="admin-input" type="number" th:value="${maxQuestions}" data-setting="maxQuestions">
             </div>
           </article>
 
@@ -72,7 +72,7 @@
             <div class="settings-data-actions">
               <div class="admin-field">
                 <label>Activity Feed Retention</label>
-                <select class="admin-select">
+                <select class="admin-select" data-setting="retention">
                   <option>7 days</option>
                   <option selected>30 days</option>
                   <option>90 days</option>
@@ -81,15 +81,15 @@
               </div>
               <div class="admin-field">
                 <label>Notification Auto-Delete</label>
-                <select class="admin-select">
+                <select class="admin-select" data-setting="autoDelete">
                   <option>7 days</option>
                   <option selected>30 days</option>
                   <option>90 days</option>
                   <option>Never</option>
                 </select>
               </div>
-              <button class="admin-button admin-button--ghost" type="button">Archive questions unused for 6 months</button>
-              <button class="admin-button admin-button--outline" type="button">Export all data as JSON/CSV</button>
+              <button class="admin-button admin-button--ghost" type="button" data-setting="archive">Archive questions unused for 6 months</button>
+              <button class="admin-button admin-button--outline" type="button" data-setting="export">Export all data as JSON/CSV</button>
             </div>
           </article>
 
@@ -98,8 +98,8 @@
             <div class="settings-actions">
               <p class="admin-table-note">These controls are ready for save, reset, and local cache cleanup actions.</p>
               <div class="settings-actions__buttons">
-                <button class="admin-button admin-button--primary" type="button">Save Changes</button>
-                <button class="admin-button admin-button--ghost" type="button">Reset</button>
+                <button class="admin-button admin-button--primary" type="button" data-setting="save">Save Changes</button>
+                <button class="admin-button admin-button--ghost" type="button" data-setting="reset">Reset</button>
               </div>
             </div>
           </article>

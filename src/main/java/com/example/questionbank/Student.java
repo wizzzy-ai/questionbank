@@ -75,6 +75,12 @@ public class Student {
 
 	private Instant passwordResetTokenExpiresAt;
 
+	@Column(name = "remember_me_token", length = 120)
+	private String rememberMeToken;
+
+	@Column(name = "remember_me_expires_at")
+	private Instant rememberMeExpiry;
+
 	@Column(nullable = false)
 	private int failedLoginAttempts = 0;
 
@@ -282,6 +288,22 @@ public class Student {
 
 	public void setPasswordResetTokenExpiresAt(Instant passwordResetTokenExpiresAt) {
 		this.passwordResetTokenExpiresAt = passwordResetTokenExpiresAt;
+	}
+
+	public String getRememberMeToken() {
+		return rememberMeToken;
+	}
+
+	public void setRememberMeToken(String rememberMeToken) {
+		this.rememberMeToken = rememberMeToken;
+	}
+
+	public Instant getRememberMeExpiry() {
+		return rememberMeExpiry;
+	}
+
+	public void setRememberMeExpiry(Instant rememberMeExpiry) {
+		this.rememberMeExpiry = rememberMeExpiry;
 	}
 
 	public int getFailedLoginAttempts() {

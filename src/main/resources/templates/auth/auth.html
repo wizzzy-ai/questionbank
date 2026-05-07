@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SecureQuiz Authentication</title>
+  <title>QuizQuest Authentication</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
@@ -14,15 +14,15 @@
 
   <main class="auth-shell">
     <section class="auth-brand">
-      <a th:href="@{/}" href="/" class="auth-brand__logo" aria-label="SecureQuiz home">
+      <a th:href="@{/}" href="/" class="auth-brand__logo" aria-label="QuizQuest home">
         <span class="auth-brand__logo-mark">
           <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2zm-1 13l-3-3 1.41-1.41L11 12.17l4.59-4.58L17 9l-6 6z"/>
           </svg>
         </span>
         <span>
-          <strong>SecureQuiz</strong>
-          <small>Online Question Bank</small>
+          <strong>QuizQuest</strong>
+          <small>Online Java Practice Platform</small>
         </span>
       </a>
 
@@ -103,7 +103,7 @@
 
               <div class="auth-form__extras">
                 <label class="check-row">
-                  <input type="checkbox" name="rememberMe">
+                  <input type="checkbox" th:field="*{rememberMe}">
                   <span class="check-row__box"></span>
                   <span>Remember me</span>
                 </label>
@@ -130,7 +130,7 @@
           <section class="auth-form" data-mode-panel="register" aria-hidden="true">
             <header class="auth-form__head">
               <p class="auth-form__eyebrow">Create your account</p>
-              <h2>Start practicing with a fresh SecureQuiz profile.</h2>
+              <h2>Start practicing with a fresh QuizQuest profile.</h2>
               <p>Set up your account and unlock focused Java question sessions in minutes.</p>
             </header>
 
